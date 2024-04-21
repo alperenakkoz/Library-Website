@@ -40,3 +40,34 @@ You need to add this, based on your credentials;
 }
 ```
 https://dotnettutorials.net/lesson/configuring-email-service-in-asp-net-core-identity/
+
+<h1>Screenshots</h1>
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Main%20Page.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Main%20Page.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Main%20Page%20Last%20Visited%20Books.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Main%20Page%20Last%20Visited%20Books.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Authors.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Authors.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Author.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Author.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Book%20Page.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Book%20Page.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Favorites.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Favorites.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/My%20Books.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/My%20Books.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Rent%20Page.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Rent%20Page.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Roles.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Roles.png" width="200" style="max-width:100%;"></a>
+
+<a href="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Sent%20Mails.png" target="_blank">
+<img src="https://github.com/alperenakkoz/Library-Website/blob/master/Screenshots/Sent%20Mails.png" width="200" style="max-width:100%;"></a>
