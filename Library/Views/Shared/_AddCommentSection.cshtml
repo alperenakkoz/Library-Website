@@ -1,0 +1,15 @@
+﻿@model Library.ViewModels.CreateCommentViewModel
+
+<form asp-action="AddComment" id="comment-form" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input asp-for="BooksId" type="hidden" />
+    <div class="row">
+        <div class="col-10">
+            <textarea asp-for="Comment" class="form-control" rows="3" placeholder="@Localizer["Placeholder"]"></textarea>
+            <span asp-validation-for="Comment" class="text-danger"></span>
+        </div>
+        <div class="col-2" style="margin-top : 10px">
+            <button class="btn btn-primary" type="submit">@Localizer["Submit"]</button>          
+        </div>
+    </div>
+</form>

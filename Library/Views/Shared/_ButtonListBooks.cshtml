@@ -1,0 +1,18 @@
+﻿@model List<Library.Models.Books>
+
+@foreach (var item in Model)
+{
+    <div style="display: inline-block; padding: 15px 40px;">
+        <div>
+            <a asp-controller="Books" asp-action="Details" asp-route-id="@item.Id">
+                <img src="@item.ImagePath" alt="@item.Title" width="161" height="250" />
+            </a>
+        </div>
+        <center>
+            <span><b>@(item.Title.Length > 20 ? @item.Title.Substring(0, 17) + "..." : @item.Title)</b></span>
+            <br />
+            <button type="button" class="btn btn-danger favoriteButton" data-bookid=@item.Id > <span class="bi bi-bookmark"> </span> </button>
+            
+        </center>
+    </div>
+}

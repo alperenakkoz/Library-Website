@@ -1,0 +1,37 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LibraryUser> SignInManager
+@model IEnumerable<Library.Models.Author>
+
+@{
+    ViewData["Title"] = Localizer["Title"];
+}
+
+<h1>@Localizer["Title"]</h1>
+@if (SignInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("Editor")))
+{
+    <p>
+        <a asp-action="Create">@Localizer["Create"]</a>
+    </p>
+}
+<form asp-action="Index" method="get">
+    <span>
+        @foreach (var item in "ABCÇDEFGHIİJKLMNOÖPQRSŞTUÜVWXYZ")
+        {
+            <a asp-action="Index" asp-route-id="@item">@item</a>
+        }
+        <a asp-action="Index" asp-route-id="">@Localizer["ReturnList"]</a>
+    </span>
+</form>
+@foreach (var item in Model)
+{
+    <div style="display: inline-block; padding: 15px 40px;">
+        <div>
+            <a asp-action="Details" asp-route-id="@item.Id">
+                <img src="@item.ImagePath" alt="My Image" width="120" height="120" style="border-radius: 50%;" />
+            </a>
+        </div>
+        <center>
+            <span>@(item.Name.Length > 20 ? @item.Name.Substring(0, 17) + "..." : @item.Name)</span>           
+        </center>
+    </div>
+}

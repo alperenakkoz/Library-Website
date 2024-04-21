@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = Localizer["Title"];
+}
+
+<h3>
+    @Localizer["Title"]!
+</h3>
+<h5>
+    @Localizer["Text"]
+</h5>
+<a class="btn btn-primary" asp-controller="Account"
+   asp-action="ResendConfirmationEmail">@Localizer["Resend"]</a>

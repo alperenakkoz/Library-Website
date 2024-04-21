@@ -1,0 +1,32 @@
+﻿@model Library.Models.Translator
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LibraryUser> SignInManager
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<h1 style="display : inline-block">@Model.Name</h1>
+
+@if (SignInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("Editor")))
+{
+    <span>
+        <a asp-action="Edit" asp-route-id="@Model?.Id">@Localizer["Edit"]</a> |
+        <a asp-action="Delete" asp-route-id="@Model?.Id">@Localizer["Delete"]</a> |
+        <a asp-action="Index">@Localizer["Back"]</a>
+    </span>
+}
+
+<div>
+    @{
+        Model.PaginatedBooks.ViewName = "Details";
+    }
+    <partial name="_PaginatedBooks" model="Model.PaginatedBooks" />
+</div>
+
+@section Scripts {
+    <script src="~/js/confirmDelete.js"></script>
+    <script>
+        var alertMessage = '@Localizer["AlertMessage"]';
+        var deletedName = '@Model.Name';
+    </script>
+}

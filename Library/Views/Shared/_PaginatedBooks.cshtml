@@ -1,0 +1,101 @@
+﻿@model PaginatedList<Library.Models.Books>
+
+@{
+    string? isMainPage = ViewData["isMainPage"] as string;
+    int languageId=0;
+    int categoryId=0;
+    bool isChecked=false;
+    if (isMainPage != null)
+    {
+        languageId = ViewBag.BookLanguageSelect.SelectedValue;
+        categoryId = ViewBag.CategorySelect.SelectedValue;
+        isChecked = (bool)(ViewData["CheckParm"] ?? false);
+    }
+
+}
+<span>@Localizer["SortBy"] :</span>
+
+@if(isMainPage != null)
+{
+    <a asp-action="@Model.ViewName"
+       asp-route-sortOrder="@ViewData["NameSortParm"]"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-languageId="@languageId"
+       asp-route-categoryId="@categoryId"
+       asp-route-showOutOfStock="@isChecked">@Localizer["Name"]</a>
+
+    <a asp-action="@Model.ViewName"
+       asp-route-sortOrder="@ViewData["DateSortParm"]"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-languageId="@languageId"
+       asp-route-categoryId="@categoryId"
+       asp-route-showOutOfStock="@isChecked">@Localizer["Date"]</a>
+}else{
+    <a asp-action="@Model.ViewName" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]">@Localizer["Name"]</a>
+
+    <a asp-action="@Model.ViewName" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]">@Localizer["Date"]</a>
+}
+
+<div>
+    @foreach (var item in Model)
+    {
+        <div style="display: inline-block; padding: 15px 40px;">
+            <div>
+                <a asp-action="Details" asp-route-id="@item.Id">
+                    <img src="@item.ImagePath" alt="@item.Title" width="161" height="250" />
+                </a>
+            </div>
+            <center>
+                <span><b>@(item.Title.Length > 20 ? @item.Title.Substring(0, 17) + "..." : @item.Title)</b></span>
+                @* <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>  *@
+            </center>
+        </div>
+    }
+</div>
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
+@if (isMainPage != null)
+{
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-languageId="@languageId"
+       asp-route-categoryId="@categoryId"
+       asp-route-showOutOfStock="@isChecked"
+       class="btn btn-primary @prevDisabled">
+        @Localizer["Previous"]
+    </a>
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-languageId="@languageId"
+       asp-route-categoryId="@categoryId"
+       asp-route-showOutOfStock="@isChecked"
+       class="btn btn-primary @nextDisabled">
+        @Localizer["Next"]
+    </a>
+}
+else
+{
+    <a asp-action="@Model.ViewName"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       class="btn btn-primary @prevDisabled">
+        @Localizer["Previous"]
+    </a>
+    <a asp-action="@Model.ViewName"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       class="btn btn-primary @nextDisabled">
+        @Localizer["Next"]
+    </a>
+}
+

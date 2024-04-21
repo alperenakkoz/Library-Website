@@ -1,0 +1,38 @@
+﻿@model List<Library.Models.Books>
+
+@{
+    var carouselId = ViewData["carouselId"] as string;
+
+}
+<div id="@carouselId" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2200">
+    <div class="carousel-indicators">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <button type="button" data-bs-target="#@carouselId" data-bs-slide-to="@i" class="@((i == 0) ? "active" : "")" aria-label="Slide @(i + 1)"></button>
+        }
+    </div>
+    <div class="carousel-inner">
+        @foreach (var item in Model)
+        {
+            <div class="carousel-item @(item == Model.First() ? "active" : "")">
+                <a asp-action="Details" asp-route-id="@item.Id">
+                    <img src="@item.ImagePath" class="d-block w-100" alt="@item.Title" height="300">
+                </a>
+                <div class="carousel-caption d-none d-md-block">
+                    @if (@item.ImagePath == "/images/Books/Kitap.png")
+                    {
+                        <h5>@item.Title</h5>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#@carouselId" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#@carouselId" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>

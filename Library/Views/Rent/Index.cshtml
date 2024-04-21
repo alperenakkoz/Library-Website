@@ -1,0 +1,17 @@
+﻿@model List<Library.ViewModels.UserViewModel>
+
+@{
+    ViewData["Title"] = Localizer["Title"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@Localizer["Title"]</h1>
+
+
+<div>
+    @foreach (var item in Model)
+    {
+        <a asp-action="RentBook" asp-route-id="@item.UserId"> @(item.UserName + " ")</a>
+        <br />
+    }
+</div>

@@ -1,0 +1,27 @@
+﻿@model Library.ViewModels.UserInfoViewModel
+@{
+    ViewData["Title"] = Localizer["Title"];
+}
+
+<h2>@Localizer["Header"]</h2>
+<hr />
+<div class="row">
+    <div class="col-3">
+        <span class="text-success">@TempData["ChangeMessage"]</span>
+        <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" readonly />
+            </div>
+          
+            <div class="form-group">
+            <label asp-for="FirstName"></label>
+            <input asp-for="FirstName" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+            <label asp-for="LastName"></label>
+            <input asp-for="LastName" class="form-control" readonly />
+            </div>
+        <a asp-action="ChangeSettings" class="btn btn-primary">@Localizer["UpdateButton"]</a>
+        <a asp-action="ChangePassword" class="btn btn-primary">@Localizer["ChangePassword"]</a>
+    </div>
+</div>

@@ -1,0 +1,64 @@
+﻿@model Library.Models.Author
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LibraryUser> SignInManager
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 style="display : inline-block">@Model.Name</h1>
+
+    @if (SignInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("Editor")))
+    {
+    <span>
+        <a asp-action="Edit" asp-route-id="@Model?.Id">@Localizer["Edit"]</a> |
+        <a asp-action="Delete" asp-route-id="@Model?.Id">@Localizer["Delete"]</a> |
+        <a asp-action="Index">@Localizer["Back"]</a> 
+        
+    </span>
+    }
+
+
+<div>
+   
+    <hr />
+    <div class="row">
+
+        <div class="col-3">
+            @if (Model.ImagePath != null || Model.ImagePath != "")
+            {
+                <center>
+                    <img class="align-middle" src="@Model.ImagePath" alt="@Model.Name" width="120" height="120" style="border-radius: 50%; " />
+                </center>
+            }
+            <div id="Description">
+                <p style="text-align: justify;">@Model.Description</p>
+            </div>
+            <center><a href="#" id="toggleDescription">@Localizer["ReadMore"]</a></center>
+        </div>
+        <div class="col-1"></div>
+        <div class="col-8">
+            @{
+                Model.PaginatedBooks.ViewName = "Details";
+            }
+            <partial name="_PaginatedBooks" model="Model.PaginatedBooks" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/shortenText.js"></script>
+    <script src="~/js/confirmDelete.js"></script>
+    <script>
+        var alertMessage = '@Localizer["AlertMessage"]';
+        var deletedName = '@Model.Name';
+        $(document).ready(function () {
+            var readMoreText = '@Localizer["ReadMore"]';
+            var readLessText = '@Localizer["ReadLess"]';
+            shortenText(readMoreText, readLessText);
+        });
+    </script>
+}
+
+
+

@@ -1,0 +1,74 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model List<IdentityRole>
+
+@{
+    ViewBag.Title = Localizer["Title"];
+}
+
+<h1>@Localizer["Title"]</h1>
+
+@if (Model.Any())
+{
+    <a class="btn btn-primary mb-3" style="width:auto" asp-controller="Role" asp-action="CreateRole">@Localizer["AddNewRole"]</a>
+
+    foreach (var role in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                @Localizer["RoleId"] : @role.Id
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">@role.Name</h5>
+            </div>
+            <div class="card-footer">
+                <form asp-action="DeleteRole" asp-route-roleId="@role.Id" method="post">
+                    <a asp-controller="Role" asp-action="EditRole" asp-route-roleId="@role.Id" class="btn btn-primary">@Localizer["Edit"]</a>
+
+                    <span id="confirmDeleteSpan_@role.Id" style="display:none">
+                        <span>@Localizer["ConfirmDelete"]</span>
+                        <button type="submit" class="btn btn-danger">@Localizer["Yes"]</button>
+                        <a href="#" class="btn btn-primary"
+                           onclick="confirmDelete('@role.Id', false)">@Localizer["No"]</a>
+                    </span>
+                    <span id="deleteSpan_@role.Id">
+                        <a href="#" class="btn btn-danger"
+                           onclick="confirmDelete('@role.Id', true)">@Localizer["Delete"]</a>
+                    </span>
+                </form>               
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            @Localizer["NoRoles"]
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                @Localizer["UseBelow"]
+            </h5>
+            <a class="btn btn-primary" style="width:auto"
+               asp-controller="Role" asp-action="CreateRole">
+                @Localizer["CreateRole"]
+            </a>
+        </div>
+    </div>
+} 
+
+<script>
+    function confirmDelete(uniqueId, isTrue) {
+
+        var deleteSpan = 'deleteSpan_' + uniqueId;
+        var confirmDeleteSpan = 'confirmDeleteSpan_' + uniqueId;
+
+        if (isTrue) {
+            $('#' + deleteSpan).hide();
+            $('#' + confirmDeleteSpan).show();
+        } else {
+            $('#' + deleteSpan).show();
+            $('#' + confirmDeleteSpan).hide();
+        }
+    }
+</script>

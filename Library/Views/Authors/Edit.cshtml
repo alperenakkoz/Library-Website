@@ -1,0 +1,52 @@
+﻿@model Library.ViewModels.EditAuthorViewModel
+
+@{
+    ViewData["Title"] = Localizer["Title"] + " " + Model.Name;
+}
+
+<h1>@Localizer["Title"]</h1>
+
+<h4>@Model.Name</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input asp-for="Id" type="hidden"/>           
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="10"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            @if(Model.ImagePath != null || Model.ImagePath != "")
+            {
+                <div class="form-group">
+                    <input asp-for="ImagePath" type="hidden" />
+                    <img src="@Model.ImagePath" alt="My Image" width="120" height="120" style="border-radius: 50%;" />
+                </div>
+            }
+            
+            <div class="form-group">
+                <label asp-for="NewImage" class="control-label"></label>
+                <input asp-for="NewImage" class="form-control"  accept="image/*" />
+                <span asp-validation-for="NewImage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="@Localizer["Button"]" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">@Localizer["Back"]</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

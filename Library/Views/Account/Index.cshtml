@@ -1,0 +1,80 @@
+﻿@model Library.ViewModels.UserViewModel
+@{
+    ViewData["Title"] = Localizer["Title"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+    @if (Model.OverdueBooks != null && Model.OverdueBooks.Any())
+    {
+        <div>
+        <h1>@Localizer["OverdueBooks"]</h1>
+            
+        <partial name="_ListBooks" model="Model.OverdueBooks" />
+
+        @if (Model.RentedBooks.Any() || Model.ReservedBooks.Any() || Model.WaitListBooks.Any() || Model.PrevRentedBooks.Any())
+        {
+            <hr />
+        }
+        
+        </div>
+    }
+
+    @if (Model.RentedBooks != null && Model.RentedBooks.Any())
+    {
+        <div>
+        <h1>@Localizer["RentedBooks"]</h1>
+        
+        <partial name="_ListBooks" model="Model.RentedBooks" />
+
+        @if (Model.ReservedBooks.Any() || Model.WaitListBooks.Any() || Model.PrevRentedBooks.Any())
+        {
+            <hr />
+        }
+        </div>
+    }
+
+    @if (Model.ReservedBooks != null && Model.ReservedBooks.Any())
+    {
+        <div>
+        <h1>@Localizer["ReservedBooks"]</h1>
+
+        <partial name="_ListBooks" model="Model.ReservedBooks" />
+
+        @if (Model.WaitListBooks.Any() || Model.PrevRentedBooks.Any())
+        {
+            <hr />
+        }
+        </div>
+    }
+   
+    @if (Model.WaitListBooks != null && Model.WaitListBooks.Any())
+    {
+        <div>
+        <h1>@Localizer["WaitListBooks"]</h1>
+
+        <partial name="_ListBooks" model="Model.WaitListBooks" />
+
+        @if (Model.PrevRentedBooks.Any())
+        {
+            <hr />
+        }
+        </div>
+    }
+
+    @if (Model.PrevRentedBooks != null && Model.PrevRentedBooks.Any())
+    {
+        <div>
+        <h1>@Localizer["PreviouslyRentedBooks"]</h1>
+           
+        <partial name="_ListBooks" model="Model.PrevRentedBooks" />
+
+        </div>
+    }
+
+@section Scripts {
+    <script>
+       
+    </script>
+}

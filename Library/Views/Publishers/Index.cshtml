@@ -1,0 +1,33 @@
+﻿@model IEnumerable<Library.Models.Publisher>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LibraryUser> SignInManager
+
+@{
+    ViewData["Title"] = Localizer["Title"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@Localizer["Title"]</h1>
+
+@if (SignInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("Editor")))
+{
+    <p>
+        <a asp-action="Create">@Localizer["Create"]</a>
+    </p>
+}
+<form asp-action="Index" method="get">
+    <span>
+    @foreach (var item in "ABCÇDEFGHIİJKLMNOÖPQRSŞTUÜVWXYZ")
+    {
+            <a asp-action="Index" asp-route-id="@item">@item</a>
+    }
+        <a asp-action="Index" asp-route-id="">@Localizer["Back"]</a>
+    </span>
+</form>
+
+@foreach (var item in Model) {
+    <div style="display: inline-block; padding: 15px 40px;">
+        <a asp-action="Details" asp-route-id="@item.Id">@item.Name</a>      
+    </div>                 
+}
+

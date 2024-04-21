@@ -1,0 +1,96 @@
+﻿@model PaginatedList<Library.Models.Books>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LibraryUser> SignInManager
+@{
+    ViewData["Title"] = Localizer["Title"];
+    List<Books> rentPopular = ViewData["RentPopular"] as List<Books>;
+    List<Books> highOnDemand = ViewData["HighOnDemand"] as List<Books>;
+    List<Books> latestBooks = ViewData["LatestBooks"] as List<Books>;
+    List<Books> lastVisitedBooks = ViewData["LastVisitedBooks"] as List<Books>;
+    bool isChecked = (bool)(ViewData["CheckParm"] ?? false);
+    ViewData["isMainPage"] = "true";
+}
+
+<h1>@Localizer["Title"]</h1>
+@if (SignInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("Editor")))
+{
+    <p>
+        <a asp-action="Create">@Localizer["Create"]</a>
+    </p>
+}
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col-2">
+        
+        @{
+            ViewData["carouselId"] = "rentPopular"; 
+        }
+
+        <partial name="_Carousel" for="@rentPopular"/>
+        <center><b>@Localizer["RentPopular"]</b></center>
+    </div>
+    <div class="col-1"></div>
+    <div class="col-2">
+        
+        @{
+            ViewData["carouselId"] = "highOnDemand";
+        }
+
+        <partial name="_Carousel" for="@highOnDemand" />
+        <center><b>@Localizer["HighOnDemand"]</b></center>
+    </div>
+    <div class="col-1"></div>
+    <div class="col-2">
+        
+        @{
+            ViewData["carouselId"] = "latestBooks";
+        }
+
+        <partial name="_Carousel" for="@latestBooks" />
+        <center><b>@Localizer["LatestBooks"]</b></center>
+    </div>
+
+</div>
+
+
+<br />
+    <form asp-action="Index" method="get">
+    <div class="row">
+        <div class="col-2">              
+            <input id="searchStr" placeholder="@Localizer["FindByTitle"]" type="search" class="form-control rounded" name="SearchString" value="@ViewData["CurrentFilter"]" />
+        </div>
+        <div class="col-2">
+            <select class="form-select" name="languageId" id="languageName" asp-items="@ViewBag.BookLanguageSelect"></select>
+        </div>
+        <div class="col-2">         
+            <select class="form-select" name="categoryId" id="categoryName" asp-items="@ViewBag.CategorySelect"></select>
+        </div>
+        <div class="col-3">          
+            <input class="form-check-input" type="checkbox" id="showOutOfStock" name="showOutOfStock" value="true" @(isChecked ? "checked" : "")>
+            <label class="form-check-label">@Localizer["ShowOutOfStock"]</label>
+
+        </div>
+        <div class="col-3">
+            <input type="submit" value="@Localizer["Search"]" class="btn btn-primary" /> |
+            <a asp-action="Index">@Localizer["Back"]</a>
+        </div>
+        
+    </div>
+    </form>
+
+
+<partial name="_PaginatedBooks" model="Model" />
+@if (ViewData["LastVisitedBooks"] != null)
+{
+   
+
+    <div id="lastVisited">
+        <h1>@Localizer["LastVisitedBooks"]</h1>
+        <hr />
+        
+        <partial name="_ListBooks" model="lastVisitedBooks" />
+    </div>
+}
+
+
+

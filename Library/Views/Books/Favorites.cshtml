@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = Localizer["Title"];
+}
+
+<div id="favoritesContainer">
+   
+</div>
+
+
+@section Scripts {
+    <script src="~/js/favorite.js"></script>
+    <script>
+        var favoriteText = '@Localizer["Favorite"]';
+        var unfavoriteText = '@Localizer["Unfavorite"]';
+        
+        $(document).ready(function () {
+            
+            function getFavoriteBooks() {
+                var favorites = localStorage.getItem("Favorites") || "";
+                var favoriteIds = favorites.split(',').filter(function (id) {
+                    return id.trim() !== ''; 
+                });
+                //console.log(JSON.stringify(favoriteIds));
+                $.ajax({
+                    url: '/Books/GetFavoriteBooks',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(favoriteIds),
+                    success: function (response) {
+                        $('#favoritesContainer').html(response);
+                        updateButton($('.favoriteButton'), (localStorage.getItem("Favorites") || ""));
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error loading partial view:', error);
+                    }
+                });           
+            }
+
+            getFavoriteBooks();
+           
+            
+        });
+
+       
+    </script>
+}
+
+      

@@ -1,0 +1,197 @@
+﻿@model Library.Models.Books
+@using Library.ViewModels
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<LibraryUser> SignInManager
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<h1>@Model.Title</h1>
+
+<div>
+    <hr />
+    
+    <div class="row" style="background-color: #FAF5F0">
+        <div class="col-2">
+
+            <img src="@Model.ImagePath" alt="@Model.Title" width="211" height="300" />
+            @if (SignInManager.IsSignedIn(User) && (User.IsInRole("Admin") || User.IsInRole("Editor")))
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id">@Localizer["Edit"]</a> <text> |</text>
+                <a asp-action="Delete" asp-route-id="@Model?.Id">@Localizer["Delete"]</a> <text> |</text>
+            }
+            
+            <a asp-action="Index">@Localizer["Back"]</a>
+        </div>
+        <div class="col-1"></div>
+        <div class="col-6">
+            <span>
+                @foreach (var item in Model.Authors)
+                {
+                    <a asp-action="Details" asp-route-id="@item.Id" asp-controller="Authors"> @(item.Name + " ")</a>
+                }
+                | <a asp-action="Details" asp-route-id="@Model.Publisher.Id" asp-controller="Publishers"> @Model.Publisher.Name</a>
+            </span>
+            <br />
+            @if (@Model.Translators != null && @Model.Translators.Count != 0)
+            {
+                <span>
+                    @foreach (var item in @Model.Translators)
+                    {
+                        <a asp-action="Details" asp-route-id="@item.Id" asp-controller="Translators"> @(item.Name + " ")</a>
+                    }
+                </span>
+            }
+            
+            <br /><br />
+            <div id="Description" >
+                <p style="text-align: justify;">
+                    @Html.Raw(Model.Description.Replace("\r\n", "<br>"))
+                </p>
+            </div>
+            <center><a href="#" id="toggleDescription">@Localizer["ReadMore"]</a></center>
+        </div>
+        <div class="col-3 mt-4" >
+            <table>
+                <tbody>
+                    <tr>
+                        <td>ISBN-10 :</td>
+                        <td> @Model.ISBN10</td>
+                    </tr>
+                    <tr>
+                        <td>ISBN-13 :</td>
+                        <td> @Model.ISBN13</td>
+                    </tr>                   
+                    <tr>
+                        <td>@Localizer["Pages"] :</td>
+                        <td> @Model.NumberOfPages</td>
+                    </tr>
+                    <tr>
+                        <td>@Localizer["PublicationDate"] :</td>
+                        <td> @Model.PublicationDate?.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                    <tr>
+                        <td>@Localizer["Category"] :</td>
+                        <td> @Model.Category.Name</td>
+                    </tr>
+                    <tr>
+                        <td>@Localizer["NumberOfBooks"] :</td>
+                        <td id="numberOfBooks"> @Model.numberOfBooks</td>
+                    </tr>                    
+                </tbody>
+            </table>  
+            <button type="button" class="btn btn-primary favoriteButton" id="favoriteButton" data-bookid="@Model.Id.ToString()"><span class="bi bi-bookmark"></span> @Localizer["Favorite"]</button>
+            <button type="button" id="reserve" class="btn btn-primary" @(SignInManager.IsSignedIn(User) ? "":"disabled")>@ViewData["ButtonText"]</button>
+            <div id="resultMessage" style="padding-top : 10px">
+                @if (ViewData["resultText"] != null)
+                {
+                    <div class="alert alert-info">
+                        @ViewData["resultText"]
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<br />
+
+@{
+    ChangeCommentViewModel prevComment = ViewData["ChangeComment"] as ChangeCommentViewModel;
+}
+<div class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            @if (prevComment == null)
+            {
+                <partial name="_AddCommentSection" model="new CreateCommentViewModel{ BooksId = Model.Id}" />
+            }
+            else
+            {
+                <partial name="_ChangeCommentSection" model="prevComment" />
+            }
+
+        }
+        
+        <br />
+        @foreach (var item in Model.CommentViewModel)
+        {        
+            <div class="row" style="background-color : #F5F5F5">
+                @if (item.UpdateDate == null)
+                {
+                    <p><b>@(item.FirstName + " " + item.LastName)</b> @item.CreateDate.ToString("dd.MM.yyyy")</p>
+                }else{
+                    <p><b>@(item.FirstName + " " + item.LastName)</b> @(item.CreateDate.ToString("dd.MM.yyyy") + " | " + item.UpdateDate?.ToString("dd.MM.yyyy"))</p>
+                }
+                
+                <p>@item.Comment </p>
+            </div>
+            <br />           
+        }
+    </div>
+    <div class="col-3">
+        
+    </div>
+
+</div>
+
+   
+
+@section Scripts{
+    <script src="~/js/shortenText.js"></script>
+    <script src="~/js/favorite.js"></script>
+    <script src="~/js/confirmDelete.js"></script>
+    <script>
+        var favoriteText = '@Localizer["Favorite"]';
+        var unfavoriteText = '@Localizer["Unfavorite"]';
+        var alertMessage = '@Localizer["AlertMessage"]';
+        var deletedName = '@Model.Title';
+        $(document).ready(function () {
+            var readMoreText = '@Localizer["ReadMore"]';
+            var readLessText = '@Localizer["ReadLess"]';
+            shortenText(readMoreText, readLessText);
+            updateButton($('#favoriteButton'), (localStorage.getItem("Favorites") || ""));
+        });
+                                   
+       
+        $(function () {
+            $('#reserve').click(function () {
+                $.ajax({
+                    url: '@Url.Action("Reserve", "Books")',
+                    data: { id: @Model.Id, 
+                    },
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.buttonText === "Reserve" || response.buttonText === "Rezerve Et") {
+                            if ($('#reserve').text() === "Cancel the reservation" || $('#reserve').text() === "Rezervasyonu İptal Et") {
+                                var numberOfBooks = parseInt($('#numberOfBooks').text(), 10);
+                                $('#numberOfBooks').text(numberOfBooks + 1);
+                            }
+                            $('#resultMessage').html('<div class="alert alert-success" role="alert">' + response.resultText + '</div>');
+                            $('#reserve').html(response.buttonText);
+                        }
+                        else if (response.buttonText === "Cancel the reservation" || response.buttonText === "Rezervasyonu İptal Et") {
+                            $('#resultMessage').html('<div class="alert alert-success" role="alert">' + response.resultText + '</div>');
+                            var numberOfBooks = parseInt($('#numberOfBooks').text(), 10);
+                            $('#numberOfBooks').text(numberOfBooks - 1);
+                            $('#reserve').html(response.buttonText);
+                        } else {
+                            $('#resultMessage').html('<div class="alert alert-success" role="alert">' + response.resultText + '</div>');
+                            $('#reserve').html(response.buttonText);
+                        }
+                        
+                    },
+                    error: function (error) {
+                        $('#resultMessage').html('<div class="alert alert-danger" role="alert">'+ error.responseText+'</div>');
+                    }
+                });
+            });
+        });
+
+        
+       
+    </script>
+}
+

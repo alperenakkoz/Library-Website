@@ -1,0 +1,144 @@
+﻿@model Library.ViewModels.CreateBookViewModel
+@{
+    ViewData["Title"] = Localizer["Title"];
+}
+<h1>@Localizer["Title"]</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ISBN10" class="control-label"></label>
+                <input asp-for="ISBN10" class="form-control" />
+                <span asp-validation-for="ISBN10" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ISBN13" class="control-label"></label>
+                <input asp-for="ISBN13" class="form-control" />
+                <span asp-validation-for="ISBN13" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NumberOfPages" class="control-label"></label>
+                <input asp-for="NumberOfPages" class="form-control" />
+                <span asp-validation-for="NumberOfPages" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PublicationDate" class="control-label"></label>
+                <input asp-for="PublicationDate" class="form-control" />
+                <span asp-validation-for="PublicationDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AuthorIds" class="control-label"></label>
+                
+                <select class="form-select" asp-for="AuthorIds" asp-items="@ViewBag.AuthorSelect"></select>               
+                <span asp-validation-for="AuthorIds" class="text-danger"></span>
+                <a asp-action="Create" asp-controller="Authors">@Localizer["AddAuthor"]</a>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookLanguageId" class="control-label"></label>
+                <select class="form-select" asp-for="BookLanguageId" asp-items="@ViewBag.BookLanguageSelect">
+                    <option value="" disabled selected>@Localizer["SelectLanguage"]</option>
+                </select>
+                <span asp-validation-for="BookLanguageId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PublisherId" class="control-label"></label>
+                <select class="form-select" asp-for="PublisherId" asp-items="@ViewBag.PublisherSelect">
+                    <option value="" disabled selected>@Localizer["SelectPublisher"]</option>
+                </select>
+                <span asp-validation-for="PublisherId" class="text-danger"></span>
+                <a asp-action="Create" asp-controller="Publishers">@Localizer["AddPublisher"]</a>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select class="form-select" asp-for="CategoryId" asp-items="@ViewBag.CategorySelect">
+                    <option value="" disabled selected>@Localizer["SelectCategory"]</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="10"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TranslatorIds" class="control-label"></label>
+                <select class="form-select" asp-for="TranslatorIds" asp-items="@ViewBag.TranslatorSelect"></select>
+                <span asp-validation-for="TranslatorIds" class="text-danger"></span>
+                <a asp-action="Create" asp-controller="Translators">@Localizer["AddTranslator"]</a>
+            </div>
+            <div class="form-group">
+                <label asp-for="numberOfBooks" class="control-label"></label>
+                <input asp-for="numberOfBooks" class="form-control" />
+                <span asp-validation-for="numberOfBooks" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Image" class="control-label"></label>
+                <input asp-for="Image" class="form-control"  accept="image/*" />
+                <span asp-validation-for="Image" class="text-danger"></span>
+            </div>
+           @*  <div>
+                <label asp-for="Images" class="control-label"></label>
+                <input asp-for="Images" class="form-control" multiple accept="image/*" />
+                <span asp-validation-for="Images" class="text-danger"></span>
+            </div> *@
+            
+            <div class="form-group">
+                <input type="submit" value="@Localizer["Create"]" class="btn btn-primary" />
+            </div>
+        </form>
+        <div id="imageContainer">
+        </div>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">@Localizer["Back"]</a>
+</div>
+
+@section Scripts {
+   @*  <script src="~/js/previewImages.js"></script>
+    <script>
+        $(document).ready(() => {
+            
+            let file;
+
+            $("#Images").change(function (e) {
+                
+                previewImages(e);
+            });
+            
+           
+        });
+        $("#imageContainer").sortable({
+            update: function (event, ui) {
+                updateImageOrder();
+            }
+        });
+
+        function updateImageOrder() {
+            var imageOrder = Array.from($("#imageContainer img")).map(function (img) {
+                return img.src;
+            });
+
+            $("#Images").val(imageOrder.join(","));
+        }
+    </script> *@
+    <script>
+        $(document).ready(function () {
+            $('#BookLanguageId, #PublisherId, #CategoryId').change(function () {
+                $(this).find('option[value=""]').remove();
+            });
+        });
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

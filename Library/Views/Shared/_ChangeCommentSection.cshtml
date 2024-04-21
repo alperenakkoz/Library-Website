@@ -1,0 +1,17 @@
+﻿@model Library.ViewModels.ChangeCommentViewModel
+
+<form asp-action="ChangeComment" id="comment-form" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input asp-for="CommentId" type="hidden" />
+    <input asp-for="BooksId" type="hidden" />
+    <div class="row">
+        <div class="col-10">
+            <textarea asp-for="Comment" class="form-control" rows="5" placeholder="@Localizer["Placeholder"]"></textarea>
+            <span asp-validation-for="Comment" class="text-danger"></span>
+        </div>
+        <div class="col-2" style="margin-top : 10px">
+            <button class="btn btn-primary" type="submit" style="font-size: 15px;">@Localizer["ChangeComment"]</button>
+            <a asp-controller="Books" asp-action="DeleteComment" asp-route-id="@Model.CommentId" class="btn btn-danger" style="font-size: 15px; margin-top : 8px;">@Localizer["DeleteComment"]</a>
+        </div>
+    </div>
+</form>

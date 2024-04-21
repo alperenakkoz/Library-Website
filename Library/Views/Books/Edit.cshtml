@@ -1,0 +1,107 @@
+﻿@model Library.ViewModels.EditBookViewModel
+@{
+    ViewData["Title"] = Localizer["Title"] + Model.Title;
+}
+<h1>@Localizer["Title"]</h1>
+
+<h4>@Model.Title</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input asp-for="Id" type="hidden"/>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ISBN10" class="control-label"></label>
+                <input asp-for="ISBN10" class="form-control" />
+                <span asp-validation-for="ISBN10" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ISBN13" class="control-label"></label>
+                <input asp-for="ISBN13" class="form-control" />
+                <span asp-validation-for="ISBN13" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NumberOfPages" class="control-label"></label>
+                <input asp-for="NumberOfPages" class="form-control" />
+                <span asp-validation-for="NumberOfPages" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PublicationDate" class="control-label"></label>
+                <input asp-for="PublicationDate" class="form-control" />
+                <span asp-validation-for="PublicationDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AuthorIds" class="control-label"></label>
+
+                <select class="form-select" asp-for="AuthorIds" asp-items="@ViewBag.AuthorSelect"></select>
+                <span asp-validation-for="AuthorIds" class="text-danger"></span>
+                <a asp-action="Create" asp-controller="Authors">@Localizer["AddAuthor"]</a>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookLanguageId" class="control-label"></label>
+                <select class="form-select" asp-for="BookLanguageId" asp-items="@ViewBag.BookLanguageSelect"></select>
+                <span asp-validation-for="BookLanguageId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PublisherId" class="control-label"></label>
+                <select class="form-select" asp-for="PublisherId" asp-items="@ViewBag.PublisherSelect"></select>
+                <span asp-validation-for="PublisherId" class="text-danger"></span>
+                <a asp-action="Create" asp-controller="Publishers">@Localizer["AddPublisher"]</a>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select class="form-select" asp-for="CategoryId" asp-items="@ViewBag.CategorySelect"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="10"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TranslatorIds" class="control-label"></label>
+                <select class="form-select" asp-for="TranslatorIds" asp-items="@ViewBag.TranslatorSelect"></select>
+                <span asp-validation-for="TranslatorIds" class="text-danger"></span>
+                <a asp-action="Create" asp-controller="Translators">@Localizer["AddTranslator"]</a>
+            </div>
+            <div class="form-group">
+                <label asp-for="numberOfBooks" class="control-label"></label>
+                <input asp-for="numberOfBooks" class="form-control"/>
+                <span asp-validation-for="numberOfBooks" class="text-danger"></span>
+            </div>
+            @if (Model.ImagePath != null || Model.ImagePath != "")
+            {
+                <div class="form-group">
+                    <input asp-for="ImagePath" type="hidden" />
+                    <img src="@Model.ImagePath" alt="@Model.Title" width="161" height="250" />
+                </div>
+            }
+
+            <div class="form-group">
+                <label asp-for="NewImage" class="control-label"></label>
+                <input asp-for="NewImage" class="form-control"  accept="image/*" />
+                <span asp-validation-for="NewImage" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <input type="submit" value="@Localizer["Edit"]" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">@Localizer["Back"]</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
