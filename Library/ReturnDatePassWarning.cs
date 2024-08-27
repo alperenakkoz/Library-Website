@@ -26,7 +26,7 @@ namespace Library
             string userId = _userManager.Users.Where(x=> x.UserName == userName).Select(x=> x.Id).First();
             bool res = _context.Rent.Any(h =>
                 h.LibraryUserId == userId &&
-                h.IsReturned == false &&
+                !h.IsReturned &&
                 h.EndTime.Date < today.Date
             );
             return res;

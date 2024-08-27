@@ -39,13 +39,13 @@ namespace Library.Controllers
             ViewData["CheckParm"] = showOutOfStock;
 
             int selectedCategory = 0;
-            var categories = _context.Category.ToList();
+            var categories = await _context.Category.ToListAsync();
             categories.Insert(0, new Category { Id = 0, Name = _localizer["SelectCategory"] }); //category placeholder
             if (categoryId != null) selectedCategory = (int)categoryId;
             ViewBag.CategorySelect = new SelectList(categories, "Id", "Name", selectedCategory);
 
             int selectedLanguage = 0;
-            var languages = _context.BookLanguage.ToList();
+            var languages = await _context.BookLanguage.ToListAsync();
             languages.Insert(0, new BookLanguage { Id = 0, Name = _localizer["SelectLanguage"] }); //language placeholder
             if (languageId != null) selectedLanguage = (int)languageId;
             ViewBag.BookLanguageSelect = new SelectList(languages, "Id", "Name", selectedLanguage);
@@ -93,15 +93,15 @@ namespace Library.Controllers
             {
                 books = books.Where(x => x.CategoryId == categoryId);
             }
-            List<int> top5BooksIdRent = _context.Rent
+            List<int> top5BooksIdRent = await _context.Rent
                 .Where(x => x.StartTime >= DateTime.Today.AddDays(-30)) //last 30 days
                 .GroupBy(x => x.BooksId) 
                 .OrderByDescending(g => g.Count()) 
                 .Select(g => g.Key) //take bookid
                 .Take(5) 
-                .ToList();
+                .ToListAsync();
 
-            List<int> top5BooksIdHoldandWait = (
+            List<int> top5BooksIdHoldandWait = await (
                                 from w in _context.WaitList
                                 group w by w.BooksId into g
                                 select new { BooksId = g.Key, Count = g.Count() }
@@ -114,24 +114,24 @@ namespace Library.Controllers
                             .OrderByDescending(x => x.Count)
                             .Select(x => x.BooksId)
                             .Take(5)
-                            .ToList();
+                            .ToListAsync();
             if(top5BooksIdRent.Count < 5) //if not enough books in rent add newest books
             {
-                top5BooksIdRent.AddRange(_context.Books.OrderByDescending(x => x.PublicationDate).Select(x => x.Id).Take(5 - top5BooksIdRent.Count).ToList());
+                top5BooksIdRent.AddRange(await _context.Books.OrderByDescending(x => x.PublicationDate).Select(x => x.Id).Take(5 - top5BooksIdRent.Count).ToListAsync());
 
             }
             if(top5BooksIdHoldandWait.Count < 5) //if not enough books in hold and wait add from rent
             {
                 top5BooksIdHoldandWait.AddRange(top5BooksIdRent.Take(5 - top5BooksIdHoldandWait.Count));
             }
-            ViewData["RentPopular"] = _context.Books.Where(b => top5BooksIdRent.Contains(b.Id)).ToList();
-            ViewData["HighOnDemand"] = _context.Books.Where(b => top5BooksIdHoldandWait.Contains(b.Id)).ToList();
-            ViewData["LatestBooks"] = _context.Books.OrderByDescending(x => x.PublicationDate).Take(5).ToList();
+            ViewData["RentPopular"] = await _context.Books.Where(b => top5BooksIdRent.Contains(b.Id)).ToListAsync();
+            ViewData["HighOnDemand"] = await _context.Books.Where(b => top5BooksIdHoldandWait.Contains(b.Id)).ToListAsync();
+            ViewData["LatestBooks"] = await _context.Books.OrderByDescending(x => x.PublicationDate).Take(5).ToListAsync();
 
             string lastVisitedBooks = Request.Cookies["LastVisitedBooks"] ?? ""; //last visited cookie
             string[] bookIds = lastVisitedBooks.Split(',', StringSplitOptions.RemoveEmptyEntries); //1,2,3
             Array.Reverse(bookIds); //latest first
-            List<Books> lastVisitedBookDetails = new List<Books>();
+            List<Books> lastVisitedBookDetails = [];
             foreach (string id in bookIds)
             {
                 if (int.TryParse(id, out int bookId)) //although it's string in cookie, it's int in db 
@@ -143,7 +143,7 @@ namespace Library.Controllers
                     }
                 }
             }
-            if (lastVisitedBookDetails.Any())
+            if (lastVisitedBookDetails.Count != 0)
             {
                 ViewData["LastVisitedBooks"] = lastVisitedBookDetails;
             }
@@ -172,7 +172,7 @@ namespace Library.Controllers
         public async Task<IActionResult> CreateAsync(CreateBookViewModel model) {
             if (ModelState.IsValid)
             {
-                Books book = new Books {
+                Books book = new () {
                     Title = model.Title,
                     ISBN10 = model.ISBN10,
                     ISBN13 = model.ISBN13,
@@ -191,28 +191,26 @@ namespace Library.Controllers
                     string guid = Guid.NewGuid().ToString(); //unique name
                     imageName = guid + "." + Path.GetExtension(model.Image.FileName);
                     filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/Books", imageName);
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await model.Image.CopyToAsync(stream);
-                    }
+                    using var stream = System.IO.File.Create(filePath);
+                    await model.Image.CopyToAsync(stream);
                 }
                 if (!String.IsNullOrEmpty(filePath))
                     book.ImagePath = "/images/Books/" + imageName;
                 else
                     book.ImagePath = "/images/Books/" + "Kitap.png"; //default image
                 _context.Books.Add(book);
-                _context.SaveChanges();
-                int bookId = _context.Books.OrderByDescending(b => b.Id).FirstOrDefault().Id;
+                await _context.SaveChangesAsync();
+                int bookId = (await _context.Books.OrderByDescending(b => b.Id).FirstOrDefaultAsync()).Id;
                 for (int i = 0; i < model.AuthorIds.Count; i++) //add connection by using BookAuthors
                 {
-                    BookAuthors bookAuthor = new BookAuthors { AuthorId = model.AuthorIds[i], BooksId = bookId };
+                    BookAuthors bookAuthor = new () { AuthorId = model.AuthorIds[i], BooksId = bookId };
                     _context.Add(bookAuthor);
                 }
                 if (model.TranslatorIds != null && model.TranslatorIds.Count != 0)
                 {
                     for (int i = 0; i < model.TranslatorIds.Count; i++) //add connection by using BookTranslator
                     {
-                        BookTranslator bookTranslator = new BookTranslator { TranslatorId = model.TranslatorIds[i], BooksId = bookId };
+                        BookTranslator bookTranslator = new () { TranslatorId = model.TranslatorIds[i], BooksId = bookId };
                         _context.Add(bookTranslator);
                     }
                 }
@@ -258,7 +256,7 @@ namespace Library.Controllers
             ViewBag.PublisherSelect = new SelectList(_context.Publisher.ToList(), "Id", "Name", book.PublisherId);
             ViewBag.CategorySelect = new SelectList(_context.Category.ToList(), "Id", "Name", book.CategoryId);
             ViewBag.TranslatorSelect = new SelectList(_context.Translator.ToList(), "Id", "Name", translatorIds);
-            EditBookViewModel model = new EditBookViewModel
+            EditBookViewModel model = new ()
             {
                 Title = book.Title,
                 ISBN10 = book.ISBN10,
@@ -287,7 +285,7 @@ namespace Library.Controllers
             }
             if (ModelState.IsValid)
             {
-                Books book = new Books
+                Books book = new ()
                 {
                     Id = model.Id,
                     Title = model.Title,
@@ -302,16 +300,16 @@ namespace Library.Controllers
                     ImagePath =model.ImagePath,
                     numberOfBooks = model.numberOfBooks
                 };
-                int prevBookCount = _context.Books.Where(x => x.Id == id).Select(x => x.numberOfBooks).FirstOrDefault();
+                int prevBookCount = await _context.Books.Where(x => x.Id == id).Select(x => x.numberOfBooks).FirstOrDefaultAsync();
                 int numberOfAddedBooks = book.numberOfBooks - prevBookCount;
                 if (numberOfAddedBooks > 0) //if new books are added, we need to give them to waitlist
                 {
                     for(int i = 0; i < numberOfAddedBooks; i++)
                     {
-                        WaitList waitListUser = _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefault(x => x.BooksId == id);
+                        WaitList waitListUser = await _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefaultAsync(x => x.BooksId == id);
                         if (waitListUser != null)
                         {
-                            Hold holdUser = new Hold
+                            Hold holdUser = new ()
                             {
                                 LibraryUserId = waitListUser.LibraryUserId,
                                 BooksId = waitListUser.BooksId,
@@ -336,21 +334,19 @@ namespace Library.Controllers
                     string guid = Guid.NewGuid().ToString(); //unique name
                     imageName = guid + "." + Path.GetExtension(model.NewImage.FileName);
                     filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/Books", imageName);
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await model.NewImage.CopyToAsync(stream);
-                    }
+                    using var stream = System.IO.File.Create(filePath);
+                    await model.NewImage.CopyToAsync(stream);
                 }
                 if (!string.IsNullOrEmpty(filePath))
                 {
                     book.ImagePath = "/images/Books/" + imageName; //new image
                     if (!String.IsNullOrEmpty(model.ImagePath) && (model.ImagePath != "/images/Books/Kitap.png")) //delete if it's not default image
-                        System.IO.File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", model.ImagePath.Substring(1)));
+                        System.IO.File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", model.ImagePath[1..]));
                 }
                 _context.BookAuthors.RemoveRange(_context.BookAuthors.Where(x => x.BooksId == book.Id));
                 for (int i = 0; i < model.AuthorIds.Count; i++) //For the changes; just delete all then add the ones come from form
                 {
-                    BookAuthors bookAuthor = new BookAuthors { AuthorId = model.AuthorIds[i], BooksId = book.Id };                   
+                    BookAuthors bookAuthor = new () { AuthorId = model.AuthorIds[i], BooksId = book.Id };                   
                     _context.Add(bookAuthor);                                                          
                 }
                 _context.BookTranslator.RemoveRange(_context.BookTranslator.Where(x => x.BooksId == book.Id));
@@ -358,13 +354,13 @@ namespace Library.Controllers
                 {                   
                     for (int i = 0; i < model.TranslatorIds.Count; i++)
                     {
-                        BookTranslator bookTranslator = new BookTranslator { TranslatorId = model.TranslatorIds[i], BooksId = book.Id };
+                        BookTranslator bookTranslator = new () { TranslatorId = model.TranslatorIds[i], BooksId = book.Id };
                         _context.Add(bookTranslator);                      
                     }
                 }
                 _context.Books.Update(book);
-                _context.SaveChanges();
-                return RedirectToAction("Details", new {id = id});
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Details", new {id});
             }
             return View(model);
         }
@@ -404,8 +400,8 @@ namespace Library.Controllers
             }
             Response.Cookies.Append("LastVisitedBooks", lastVisitedBooks, cookieOptions); //set cookie
 
-            List<Comments> comments = _context.Comments.Where(x => x.BooksId == id).OrderByDescending(x => x.UpdateDate ?? x.CreateDate).ToList();
-            List<CommentViewModel> commentViewModels = new List<CommentViewModel>();
+            List<Comments> comments = await _context.Comments.Where(x => x.BooksId == id).OrderByDescending(x => x.UpdateDate ?? x.CreateDate).ToListAsync();
+            List<CommentViewModel> commentViewModels = new ();
             ViewData["ChangeComment"] = null;
             string? currentUserId = _userManager.GetUserId(User);
             foreach(var item in comments)
@@ -424,26 +420,26 @@ namespace Library.Controllers
             }
             book.CommentViewModel = commentViewModels;
 
-            book.Authors = _context.Author
+            book.Authors = await _context.Author
                      .Where(a => _context.BookAuthors
                                         .Where(ba => ba.BooksId == id)
                                         .Select(ba => ba.AuthorId)
                                         .Contains(a.Id))
-                     .ToList();
-            book.Translators = _context.Translator
+                     .ToListAsync();
+            book.Translators = await _context.Translator
                      .Where(a => _context.BookTranslator
                                         .Where(ba => ba.BooksId == id)
                                         .Select(ba => ba.TranslatorId)
                                         .Contains(a.Id))
-                     .ToList();            
-            book.Category = _context.Category.FirstOrDefault(x => x.Id == book.CategoryId);
-            book.Publisher = _context.Publisher.FirstOrDefault(x => x.Id == book.PublisherId);
+                     .ToListAsync();            
+            book.Category = await _context.Category.FirstOrDefaultAsync(x => x.Id == book.CategoryId);
+            book.Publisher = await _context.Publisher.FirstOrDefaultAsync(x => x.Id == book.PublisherId);
 
-            string userId = _userManager.GetUserId(User);  //User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int place = _context.WaitList.OrderBy(x => x.CreateDate)
+            string userId = _userManager.GetUserId(User); 
+            int place = (await _context.WaitList.OrderBy(x => x.CreateDate)
                               .Where(x => x.BooksId == id)
-                              .ToList()
-                              .IndexOf(_context.WaitList.FirstOrDefault(x => x.LibraryUserId == userId && x.BooksId == id)) + 1;
+                              .ToListAsync())
+                              .IndexOf(await _context.WaitList.FirstOrDefaultAsync(x => x.LibraryUserId == userId && x.BooksId == id)) + 1;
 
             
             if (place == 0)
@@ -470,7 +466,7 @@ namespace Library.Controllers
         [Authorize]
         public IActionResult Reserve(int id) //AJAX
         {
-            string userId = _userManager.GetUserId(User); //User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = _userManager.GetUserId(User); 
             bool isInWait = isInWaitlist(id);
             bool isInHold= isInHoldList(id);
             string buttonText = "";
@@ -484,7 +480,7 @@ namespace Library.Controllers
 
                 if (waitListUser != null) //give the book first record from waitlist
                 {
-                    Hold holdUser = new Hold
+                    Hold holdUser = new ()
                     {
                         LibraryUserId = waitListUser.LibraryUserId,
                         BooksId = waitListUser.BooksId,
@@ -580,7 +576,7 @@ namespace Library.Controllers
         }
         private bool isInWaitlist(int id)
         {
-            string userId = _userManager.GetUserId(User); //User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = _userManager.GetUserId(User); 
             if (_context.WaitList.Any(x => x.LibraryUserId == userId && x.BooksId == id))
             {
                 return true;
@@ -591,7 +587,7 @@ namespace Library.Controllers
 
         private bool isInHoldList(int id)
         {
-            string userId = _userManager.GetUserId(User); //User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = _userManager.GetUserId(User); 
             if (_context.Hold.Any(x => x.LibraryUserId == userId && x.BooksId == id))
             {
                 return true;
@@ -623,7 +619,7 @@ namespace Library.Controllers
         {
             if (ModelState.IsValid)
             {
-                Comments comment = new Comments
+                Comments comment = new ()
                 {
                     BooksId = model.BooksId,
                     Comment = model.Comment,
@@ -640,7 +636,7 @@ namespace Library.Controllers
         [Authorize]
         public IActionResult DeleteComment(int id)
         {
-            string userId = _userManager.GetUserId(User); //User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = _userManager.GetUserId(User); 
             if (userId != null)
             {
                 Comments? comment = _context.Comments.FirstOrDefault(c => c.Id == id && c.LibraryUserId == userId);

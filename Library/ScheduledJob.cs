@@ -32,14 +32,14 @@ namespace Library
 
                 var today = DateTime.Today;
 
-                var expiredHolds = dbContext.Hold.Where(h => h.EndTime.Date < today.Date).ToList();
+                var expiredHolds = await dbContext.Hold.Where(h => h.EndTime.Date < today.Date).ToListAsync();
                 foreach(var hold in expiredHolds)
                 {
-                    WaitList waitListUser = dbContext.WaitList.OrderBy(x => x.CreateDate).FirstOrDefault(x => x.BooksId == hold.BooksId);
+                    WaitList waitListUser = await dbContext.WaitList.OrderBy(x => x.CreateDate).FirstOrDefaultAsync(x => x.BooksId == hold.BooksId);
                     if (waitListUser != null) 
                     {
                         //if there is a record in waitlist, it will take the reserve
-                        Hold holdUser = new Hold
+                        Hold holdUser = new ()
                         {
                             LibraryUserId = waitListUser.LibraryUserId,
                             BooksId = waitListUser.BooksId,
@@ -51,7 +51,7 @@ namespace Library
                     }
                     else
                     {
-                        dbContext.Books.FirstOrDefault(x => x.Id == hold.BooksId).numberOfBooks += 1;
+                        (await dbContext.Books.FirstOrDefaultAsync(x => x.Id == hold.BooksId)).numberOfBooks += 1;
                     }
                 }
                 dbContext.Hold.RemoveRange(expiredHolds);
@@ -71,13 +71,13 @@ namespace Library
                 
                 var expiredRents =  dbContext.Rent
                     .Where(h => h.EndTime.Date < today.Date
-                    && h.IsReturned == false);
+                    && !h.IsReturned);
                 var expiredRentUserIds = await expiredRents.Select(rent => rent.LibraryUserId)
                     .Distinct()
                     .ToListAsync();
                 foreach (var userId in expiredRentUserIds)
                 {
-                    var latestNotification = dbContext.Notification.OrderByDescending(x => x.SentAt).FirstOrDefault(x => x.LibraryUserId == userId);
+                    var latestNotification = await dbContext.Notification.OrderByDescending(x => x.SentAt).FirstOrDefaultAsync(x => x.LibraryUserId == userId);
                     if (latestNotification != null && latestNotification.SentAt.Date.AddDays(2) >= today.Date)
                         continue;
                     List<string> bookNames = await dbContext.Books.Where(b => expiredRents.Any(x => x.LibraryUserId == userId && x.BooksId == b.Id))

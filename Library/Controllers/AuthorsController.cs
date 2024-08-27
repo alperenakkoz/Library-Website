@@ -111,12 +111,10 @@ namespace Library.Controllers
                     imageName = guid + "." + Path.GetExtension(model.Image.FileName);
                     filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/Authors", imageName);
 
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await model.Image.CopyToAsync(stream);
-                    }
+                    using var stream = System.IO.File.Create(filePath);
+                    await model.Image.CopyToAsync(stream);
                 }
-                Author author = new Author
+                Author author = new ()
                 {
                     Name = model.AuthorName,
                     Description = model.Description
@@ -144,7 +142,7 @@ namespace Library.Controllers
             {
                 return NotFound();
             }
-            EditAuthorViewModel model = new EditAuthorViewModel { 
+            EditAuthorViewModel model = new () { 
                 Description = author.Description,
                 Id = author.Id,
                 Name = author.Name,
@@ -171,12 +169,12 @@ namespace Library.Controllers
                     string guid = Guid.NewGuid().ToString(); //For unique names
                     imageName = guid + "." + Path.GetExtension(model.NewImage.FileName);
                     filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/Authors", imageName);
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await model.NewImage.CopyToAsync(stream);
-                    }
+
+                    using var stream = System.IO.File.Create(filePath);
+                    await model.NewImage.CopyToAsync(stream);
+                    
                 }
-                Author author = new Author
+                Author author = new ()
                 {
                     Id = id,
                     Name = model.Name,
@@ -206,7 +204,7 @@ namespace Library.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Details", new { id = id }); 
+                return RedirectToAction("Details", new { id }); 
             }
             return View(model);
         }

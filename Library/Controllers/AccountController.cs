@@ -45,7 +45,7 @@ namespace Library.Controllers
         {
             if (ModelState.IsValid)
             {
-                LibraryUser user = new LibraryUser //UserName = Email
+                LibraryUser user = new () //UserName = Email
                 {
                     UserName = model.Email,
                     Email = model.Email,
@@ -71,10 +71,7 @@ namespace Library.Controllers
         [HttpGet]
         public IActionResult Login(string? ReturnUrl = null) //ReturnUrl holds the link of the page that directed to the login page.
         {
-            if(ReturnUrl == null)
-            {
-                ReturnUrl = Request.Headers["Referer"]; //If user clicked the login, get previous page
-            }
+            ReturnUrl ??= Request.Headers.Referer; //If user clicked the login, get previous page
             ViewData["ReturnUrl"] = ReturnUrl; 
             return View();
         }
@@ -150,29 +147,29 @@ namespace Library.Controllers
         public async Task<IActionResult> Index()
         {
             LibraryUser user = await _userManager.GetUserAsync(User);
-            List<Books> reservedBooks = _context.Books.Where(x => _context.Hold
+            List<Books> reservedBooks = await _context.Books.Where(x => _context.Hold
                                                 .Where(h => h.LibraryUserId == user.Id)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
+                                                .Contains(x.Id)).ToListAsync();
             var today = DateTime.Today;
-            List<Books> rentedBooks = _context.Books.Where(x => _context.Rent
-                                                .Where(h => h.LibraryUserId == user.Id && h.IsReturned == false && h.EndTime.Date >= today.Date)
+            List<Books> rentedBooks = await _context.Books.Where(x => _context.Rent
+                                                .Where(h => h.LibraryUserId == user.Id && !h.IsReturned && h.EndTime.Date >= today.Date)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
+                                                .Contains(x.Id)).ToListAsync();
 
-            List<Books> OverdueBooks = _context.Books.Where(x => _context.Rent
-                                                .Where(h => h.LibraryUserId == user.Id && h.IsReturned == false && h.EndTime.Date < today.Date)
+            List<Books> OverdueBooks = await _context.Books.Where(x => _context.Rent
+                                                .Where(h => h.LibraryUserId == user.Id && !h.IsReturned  && h.EndTime.Date < today.Date)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
-            List<Books> waitListBooks = _context.Books.Where(x => _context.WaitList
+                                                .Contains(x.Id)).ToListAsync();
+            List<Books> waitListBooks = await _context.Books.Where(x => _context.WaitList
                                                .Where(h => h.LibraryUserId == user.Id)
                                                .Select(h => h.BooksId)
-                                               .Contains(x.Id)).ToList();
-            List<Books> prevRentedBooks = _context.Books.Where(x => _context.Rent
-                                                .Where(h => h.LibraryUserId == user.Id && h.IsReturned == true)
+                                               .Contains(x.Id)).ToListAsync();
+            List<Books> prevRentedBooks = await _context.Books.Where(x => _context.Rent
+                                                .Where(h => h.LibraryUserId == user.Id && h.IsReturned)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
-            UserViewModel userViewModel = new UserViewModel
+                                                .Contains(x.Id)).ToListAsync();
+            UserViewModel userViewModel = new ()
             {
                 UserId = user.Id,
                 ReservedBooks = reservedBooks,
@@ -328,9 +325,11 @@ namespace Library.Controllers
             }
             else
             {
-                ResetPasswordViewModel model = new ResetPasswordViewModel();
-                model.Token = Token;
-                model.Email = Email;
+                ResetPasswordViewModel model = new()
+                {
+                    Token = Token,
+                    Email = Email
+                };
                 return View(model);
             }
         }
@@ -416,7 +415,7 @@ namespace Library.Controllers
         public async Task<IActionResult> Settings() //user credentials page
         {
             var user = await _userManager.GetUserAsync(User);
-            UserInfoViewModel userInfoViewModel = new UserInfoViewModel
+            UserInfoViewModel userInfoViewModel = new ()
             {
                 Email = user.Email,
                 FirstName = user.FirstName,
@@ -429,7 +428,7 @@ namespace Library.Controllers
         public async Task<IActionResult> ChangeSettings()//change user credentials page
         {
             var user = await _userManager.GetUserAsync(User);
-            UserInfoViewModel userInfoViewModel = new UserInfoViewModel
+            UserInfoViewModel userInfoViewModel = new ()
             {
                 Email = user.Email,
                 FirstName = user.FirstName,
@@ -475,7 +474,7 @@ namespace Library.Controllers
                 CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
                 new CookieOptions { Expires = DateTime.Now.AddYears(1) }
             );
-            string returnUrl = Request.Headers["Referer"];
+            string? returnUrl = Request.Headers.Referer;
             if(returnUrl != null)
                 return Redirect(returnUrl);         
             return RedirectToAction("Index", "Books");

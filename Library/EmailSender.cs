@@ -29,7 +29,7 @@ namespace Library
                 EnableSsl = true,
             };
 
-            MailMessage mailMessage = new MailMessage(FromEmail, ToEmail, Subject, Body)
+            MailMessage mailMessage = new(FromEmail, ToEmail, Subject, Body)
             {
                 IsBodyHtml = IsBodyHtml
             };

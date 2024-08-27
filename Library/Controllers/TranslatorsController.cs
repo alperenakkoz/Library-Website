@@ -29,7 +29,7 @@ namespace Library.Controllers
             {              
                 return View(await _context.Translator.Where(p => p.Name.StartsWith(id)).OrderBy(p => p.Name).ToListAsync());
             }
-            List<Translator> popularTranslators = _context.Translator
+            List<Translator> popularTranslators = await _context.Translator
                                                     .GroupJoin(//join with another join
                                                         _context.BookTranslator
                                                             .Join(_context.Rent,//join based on BooksId
@@ -43,7 +43,7 @@ namespace Library.Controllers
                                                     )
                                                     .OrderByDescending(x => x.RentCounts)
                                                     .Select(x => x.Translator)
-                                                    .ToList();
+                                                    .ToListAsync();
             return View(popularTranslators);
         }
 
@@ -152,7 +152,7 @@ namespace Library.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Details", new { id });
             }
             return View(translator);
         }

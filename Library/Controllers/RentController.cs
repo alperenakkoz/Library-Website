@@ -46,7 +46,7 @@ namespace Library.Controllers
             if (id == null)
                 return NotFound();
 
-            if (!_userManager.Users.Any(x => x.Id == id))
+            if (!await _userManager.Users.AnyAsync(x => x.Id == id))
                 return NotFound();
             ViewData["CurrentSort"] = sortOrder;
             ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
@@ -84,32 +84,32 @@ namespace Library.Controllers
                     break;
             }
 
-            List<Books> reservedBooks = _context.Books.Where(x => _context.Hold
+            List<Books> reservedBooks = await _context.Books.Where(x => _context.Hold
                                                 .Where(h => h.LibraryUserId == id)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
+                                                .Contains(x.Id)).ToListAsync();
 
-            List<int> reservedBookIds = _context.Hold.Where(h => h.LibraryUserId == id) //for removing from rentable books
+            List<int> reservedBookIds = await _context.Hold.Where(h => h.LibraryUserId == id) //for removing from rentable books
                                                 .Select(h => h.BooksId)
-                                                .ToList();
+                                                .ToListAsync();
 
             var today = DateTime.Today;
-            List<Books> rentedBooks = _context.Books.Where(x => _context.Rent
-                                                .Where(h => h.LibraryUserId == id && h.IsReturned == false && h.EndTime.Date >= today.Date)
+            List<Books> rentedBooks = await _context.Books.Where(x => _context.Rent
+                                                .Where(h => h.LibraryUserId == id && h.IsReturned && h.EndTime.Date >= today.Date)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
+                                                .Contains(x.Id)).ToListAsync();
           
-            List<Books> OverdueBooks = _context.Books.Where(x => _context.Rent
-                                                .Where(h => h.LibraryUserId == id && h.IsReturned == false && h.EndTime.Date < today.Date)
+            List<Books> OverdueBooks = await _context.Books.Where(x => _context.Rent
+                                                .Where(h => h.LibraryUserId == id && h.IsReturned  && h.EndTime.Date < today.Date)
                                                 .Select(h => h.BooksId)
-                                                .Contains(x.Id)).ToList();
+                                                .Contains(x.Id)).ToListAsync();
             //for removing from rentable books
-            List<int> rentBookIds = _context.Rent.Where(x => x.LibraryUserId == id && x.IsReturned == false).Select(x => x.BooksId).ToList(); 
+            List<int> rentBookIds = await _context.Rent.Where(x => x.LibraryUserId == id && x.IsReturned ).Select(x => x.BooksId).ToListAsync(); 
 
             booksQuery = booksQuery.Where(x => !reservedBookIds.Contains(x.Id) && !rentBookIds.Contains(x.Id) && x.numberOfBooks > 0);
             int pageSize = 10; //number of books shown in rentable books
             var paginatedBooks = await PaginatedList<Books>.CreateAsync(booksQuery.AsNoTracking(), pageNumber ?? 1, pageSize);
-            UserViewModel userViewModel = new UserViewModel
+            UserViewModel userViewModel = new ()
             {
                 UserId = id,
                 PaginatedBooks = paginatedBooks,
@@ -122,7 +122,7 @@ namespace Library.Controllers
         }
 
         [HttpPost]
-        public IActionResult RentBook(string UserId, string[] image) //AJAX
+        public async Task<IActionResult> RentBook(string UserId, string[] image) //AJAX
         {
             if(image.Length > 4)
             {//max rentable book is 4
@@ -131,18 +131,18 @@ namespace Library.Controllers
             //make it int
             List<int> rentedBookIds = image.Select(int.Parse).ToList();
             //if it not in array than it's returned 
-            var returnedBooks = _context.Rent .Where(x => x.LibraryUserId == UserId && !x.IsReturned && !rentedBookIds.Contains(x.BooksId)).ToList();
+            var returnedBooks = await _context.Rent.Where(x => x.LibraryUserId == UserId && !x.IsReturned && !rentedBookIds.Contains(x.BooksId)).ToListAsync();
 
             foreach (var rentedBook in returnedBooks)
             {
                 rentedBook.IsReturned = true;
-                var book = _context.Books.FirstOrDefault(x => x.Id == rentedBook.BooksId);
+                var book = await _context.Books.FirstOrDefaultAsync(x => x.Id == rentedBook.BooksId);
                 book.numberOfBooks++;
                 
-                WaitList waitListUser = _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefault(x => x.BooksId == rentedBook.BooksId);
+                WaitList waitListUser = await _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefaultAsync(x => x.BooksId == rentedBook.BooksId);
                 if(waitListUser != null) //if waitlist not null give the returned book to them
                 {
-                    Hold holdUser = new Hold
+                    Hold holdUser = new ()
                     {
                         LibraryUserId = waitListUser.LibraryUserId,
                         BooksId = waitListUser.BooksId,
@@ -156,8 +156,8 @@ namespace Library.Controllers
                 _context.Update(book);
             }
             //i just could delete all but it would reset the date.
-            List<int> rentBookIdsInDb = _context.Rent.Where(x => x.LibraryUserId == UserId && !x.IsReturned && rentedBookIds.Contains(x.BooksId)).Select(x=> x.BooksId).ToList();
-            bool hasOverDue = _context.Rent.Where(x => x.LibraryUserId == UserId && !x.IsReturned && x.EndTime.Date < DateTime.Now.Date && rentedBookIds.Contains(x.BooksId)).Any();
+            List<int> rentBookIdsInDb = await _context.Rent.Where(x => x.LibraryUserId == UserId && !x.IsReturned && rentedBookIds.Contains(x.BooksId)).Select(x=> x.BooksId).ToListAsync();
+            bool hasOverDue = await _context.Rent.Where(x => x.LibraryUserId == UserId && !x.IsReturned && x.EndTime.Date < DateTime.Now.Date && rentedBookIds.Contains(x.BooksId)).AnyAsync();
             foreach (int bookId  in rentedBookIds)
             {              
                 if (!rentBookIdsInDb.Contains(bookId)){
@@ -165,7 +165,7 @@ namespace Library.Controllers
                     {
                         return RedirectToAction("RentBook", new { warning = _localizer["OverDueWarning"] });
                     }
-                    Rent rent = new Rent
+                    Rent rent = new ()
                     {
                         StartTime = DateTime.Now,
                         EndTime = DateTime.Now.AddDays(15),
@@ -175,21 +175,21 @@ namespace Library.Controllers
                     };
                     _context.Add(rent);
                                       
-                    var reserve = _context.Hold.FirstOrDefault(x => x.LibraryUserId == UserId && x.BooksId == bookId);
+                    var reserve = await _context.Hold.FirstOrDefaultAsync(x => x.LibraryUserId == UserId && x.BooksId == bookId);
                     if(reserve != null)
                     {
                         _context.Remove(reserve);
                     }
                     else
                     {
-                        var book = _context.Books.FirstOrDefault(x => x.Id == bookId);
+                        Books book = await _context.Books.SingleOrDefaultAsync(x => x.Id == bookId);
                         book.numberOfBooks--;
                         _context.Update(book);
                    }                    
                 }               
                
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction("RentBook");
         }
     }

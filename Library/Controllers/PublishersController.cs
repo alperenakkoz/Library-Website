@@ -118,7 +118,7 @@ namespace Library.Controllers
             {
                 return NotFound();
             }
-            EditPublisherViewModel model = new EditPublisherViewModel { Name = publisher.Name, Id = (int)id };
+            EditPublisherViewModel model = new () { Name = publisher.Name, Id = (int)id };
             return View(model);
         }
       
@@ -149,7 +149,7 @@ namespace Library.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Details", new { id });
             }
             return View(model);
         }

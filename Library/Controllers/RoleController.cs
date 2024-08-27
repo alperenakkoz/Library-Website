@@ -67,10 +67,10 @@ namespace Library.Controllers
             var roleModel = new EditRoleViewModel
             {
                 Id = roleId,
-                RoleName = role.Name
+                RoleName = role.Name,
+                Users = []
             };
-            roleModel.Users = new List<string>();
-            foreach (var user in _userManager.Users.ToList())
+            foreach (var user in await _userManager.Users.ToListAsync())
             {
                 if(await _userManager.IsInRoleAsync(user, role.Name))
                 {
@@ -147,13 +147,13 @@ namespace Library.Controllers
             }
             ViewData["RoleName"] = role.Name;
             var model = new List<UserRoleViewModel>();
-            foreach (var user in _userManager.Users.ToList())
+            foreach (var user in await _userManager.Users.ToListAsync())
             {
                 var userRoleViewModel = new UserRoleViewModel
                 {
                     UserId = user.Id,
                     UserName = user.UserName,
-                    IsSelected = (await _userManager.IsInRoleAsync(user, role.Name)) ? true : false,
+                    IsSelected = (await _userManager.IsInRoleAsync(user, role.Name)),
                 };
                 model.Add(userRoleViewModel);
             }
@@ -188,7 +188,7 @@ namespace Library.Controllers
                     return View("Error");
                 }
             }
-            return RedirectToAction("EditRole", new { roleId = roleId });
+            return RedirectToAction("EditRole", new { roleId });
         }
 
         
