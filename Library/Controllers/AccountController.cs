@@ -114,9 +114,9 @@ namespace Library.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
-            if(!Request.Headers["Referer"].IsNullOrEmpty())
-                return Redirect(Request.Headers["Referer"]); //returns the page which you log out from
+            await _signInManager.SignOutAsync();    
+            if(!String.IsNullOrEmpty(Request.Headers.Referer))
+                return Redirect(Request.Headers.Referer); //returns the page which you log out from
             return RedirectToAction("Index", "Books");
         }
 

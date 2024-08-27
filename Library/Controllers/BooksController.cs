@@ -169,10 +169,10 @@ namespace Library.Controllers
 
         [Authorize(Roles = "Admin, Editor")]
         [HttpPost]
-        public async Task<IActionResult> CreateAsync(CreateBookViewModel model) { 
-            if(ModelState.IsValid)
+        public async Task<IActionResult> CreateAsync(CreateBookViewModel model) {
+            if (ModelState.IsValid)
             {
-                Books book = new Books { 
+                Books book = new Books {
                     Title = model.Title,
                     ISBN10 = model.ISBN10,
                     ISBN13 = model.ISBN13,
@@ -196,7 +196,7 @@ namespace Library.Controllers
                         await model.Image.CopyToAsync(stream);
                     }
                 }
-                if (!filePath.IsNullOrEmpty())
+                if (!String.IsNullOrEmpty(filePath))
                     book.ImagePath = "/images/Books/" + imageName;
                 else
                     book.ImagePath = "/images/Books/" + "Kitap.png"; //default image
@@ -204,11 +204,11 @@ namespace Library.Controllers
                 _context.SaveChanges();
                 int bookId = _context.Books.OrderByDescending(b => b.Id).FirstOrDefault().Id;
                 for (int i = 0; i < model.AuthorIds.Count; i++) //add connection by using BookAuthors
-                {                  
+                {
                     BookAuthors bookAuthor = new BookAuthors { AuthorId = model.AuthorIds[i], BooksId = bookId };
                     _context.Add(bookAuthor);
                 }
-                if (!model.TranslatorIds.IsNullOrEmpty())
+                if (model.TranslatorIds != null && model.TranslatorIds.Count != 0)
                 {
                     for (int i = 0; i < model.TranslatorIds.Count; i++) //add connection by using BookTranslator
                     {
@@ -217,7 +217,7 @@ namespace Library.Controllers
                     }
                 }
                 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             return View(model);
@@ -341,10 +341,10 @@ namespace Library.Controllers
                         await model.NewImage.CopyToAsync(stream);
                     }
                 }
-                if (!filePath.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(filePath))
                 {
                     book.ImagePath = "/images/Books/" + imageName; //new image
-                    if (!model.ImagePath.IsNullOrEmpty() && (model.ImagePath != "/images/Books/Kitap.png")) //delete if it's not default image
+                    if (!String.IsNullOrEmpty(model.ImagePath) && (model.ImagePath != "/images/Books/Kitap.png")) //delete if it's not default image
                         System.IO.File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", model.ImagePath.Substring(1)));
                 }
                 _context.BookAuthors.RemoveRange(_context.BookAuthors.Where(x => x.BooksId == book.Id));
@@ -354,7 +354,7 @@ namespace Library.Controllers
                     _context.Add(bookAuthor);                                                          
                 }
                 _context.BookTranslator.RemoveRange(_context.BookTranslator.Where(x => x.BooksId == book.Id));
-                if (!model.TranslatorIds.IsNullOrEmpty()) //For the changes; just delete all then add the ones come from form
+                if (model.TranslatorIds != null && model.TranslatorIds.Count != 0) //For the changes; just delete all then add the ones come from form
                 {                   
                     for (int i = 0; i < model.TranslatorIds.Count; i++)
                     {

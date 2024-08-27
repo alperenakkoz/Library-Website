@@ -121,7 +121,7 @@ namespace Library.Controllers
                     Name = model.AuthorName,
                     Description = model.Description
                 };
-                if(!filePath.IsNullOrEmpty())
+                if(!string.IsNullOrEmpty(filePath))
                     author.ImagePath = "/images/Authors/" + imageName;
                 else //default image
                     author.ImagePath = "/images/Authors/" + "Yazar.png";
@@ -183,10 +183,10 @@ namespace Library.Controllers
                     Description = model.Description,
                     ImagePath =model.ImagePath,
                 };
-                if (!filePath.IsNullOrEmpty()) //if previous image exists, change the path
+                if (!string.IsNullOrEmpty(filePath)) //if previous image exists, change the path
                 {
                     author.ImagePath = "/images/Authors/" + imageName;
-                    if(!model.ImagePath.IsNullOrEmpty() && (model.ImagePath != "/images/Authors/Yazar.png")) //if it's not the default image delete it
+                    if(!String.IsNullOrEmpty(model.ImagePath) && (model.ImagePath != "/images/Authors/Yazar.png")) //if it's not the default image delete it
                         System.IO.File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", model.ImagePath.Substring(1)));
                 }
                    

@@ -101,7 +101,7 @@ namespace Library.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Translator translator)
         {
-            if (!translator.Name.IsNullOrEmpty())
+            if (!String.IsNullOrEmpty(translator.Name))
             {
                 _context.Add(translator);
                 await _context.SaveChangesAsync();
@@ -134,7 +134,7 @@ namespace Library.Controllers
                 return NotFound();
             }
 
-            if (!translator.Name.IsNullOrEmpty())
+            if (!String.IsNullOrEmpty(translator.Name))
             {
                 try
                 {
