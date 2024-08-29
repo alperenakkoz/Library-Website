@@ -24,13 +24,13 @@ namespace Library.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult Index(string? id)
+        public async Task<IActionResult> Index(string? id)
         {
             if (!string.IsNullOrEmpty(id)) //take the authors with starting letter
             {               
-                return View(_context.Author.Where(p => p.Name.StartsWith(id)).OrderBy(p => p.Name).ToList()); 
+                return View(await _context.Author.Where(p => p.Name.StartsWith(id)).OrderBy(p => p.Name).ToListAsync()); 
             }
-            List<Author> popularAuthors = _context.Author
+            List<Author> popularAuthors = await _context.Author
                                                     .GroupJoin( //join with another join
                                                         _context.BookAuthors
                                                             .Join(_context.Rent, //join based on BooksId
@@ -44,7 +44,7 @@ namespace Library.Controllers
                                                     )
                                                     .OrderByDescending(x => x.RentCounts)
                                                     .Select(x => x.Author)
-                                                    .ToList();
+                                                    .ToListAsync();
             return View(popularAuthors);
         }
 
@@ -195,7 +195,7 @@ namespace Library.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AuthorExists(author.Id))
+                    if (! await AuthorExistsAsync(author.Id))
                     {
                         return NotFound();
                     }
@@ -209,7 +209,7 @@ namespace Library.Controllers
             return View(model);
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
 
             if (id == null)
@@ -217,7 +217,7 @@ namespace Library.Controllers
                 return NotFound();
             }
 
-            var author = _context.Author.Find(id);
+            var author = await _context.Author.FindAsync(id);
 
             if (author == null)
             {
@@ -225,13 +225,13 @@ namespace Library.Controllers
             }
 
             _context.Author.Remove(author);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
-        private bool AuthorExists(int id)
+        private async Task<bool> AuthorExistsAsync(int id)
         {
-            return _context.Author.Any(e => e.Id == id);
+            return (await _context.Author.AnyAsync(e => e.Id == id));
         }
     }
 }

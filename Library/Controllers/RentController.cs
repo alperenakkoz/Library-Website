@@ -24,10 +24,10 @@ namespace Library.Controllers
             _userManager = userManager;
             _localizer = localizer;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {                     
             var model = new List<UserViewModel>();
-            foreach (var user in _userManager.Users.ToList())
+            foreach (var user in await _userManager.Users.ToListAsync())
             {
                 var UserViewModel = new UserViewModel
                 {

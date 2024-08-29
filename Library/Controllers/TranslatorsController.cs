@@ -143,7 +143,7 @@ namespace Library.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TranslatorExists(translator.Id))
+                    if (!await TranslatorExists(translator.Id))
                     {
                         return NotFound();
                     }
@@ -157,7 +157,7 @@ namespace Library.Controllers
             return View(translator);
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
 
             if (id == null)
@@ -165,7 +165,7 @@ namespace Library.Controllers
                 return NotFound();
             }
 
-            var translator = _context.Translator.Find(id);
+            var translator = await _context.Translator.FindAsync(id);
 
             if (translator == null)
             {
@@ -173,13 +173,13 @@ namespace Library.Controllers
             }
 
             _context.Translator.Remove(translator);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
-        private bool TranslatorExists(int id)
+        private async Task<bool> TranslatorExists(int id)
         {
-            return _context.Translator.Any(e => e.Id == id);
+            return (await _context.Translator.AnyAsync(e => e.Id == id));
         }
     }
 }

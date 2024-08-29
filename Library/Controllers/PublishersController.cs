@@ -24,13 +24,13 @@ namespace Library.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult Index(string? id)
+        public async Task<IActionResult> Index(string? id)
         {
             if (!string.IsNullOrEmpty(id)) //take the publishers with starting letter
             {              
-                return View(_context.Publisher.Where(p => p.Name.StartsWith(id)).OrderBy(p => p.Name).ToList());                           
+                return View(await _context.Publisher.Where(p => p.Name.StartsWith(id)).OrderBy(p => p.Name).ToListAsync());                           
             }
-            List<Publisher> popularPublishers = _context.Publisher
+            List<Publisher> popularPublishers = await _context.Publisher
                                                     .GroupJoin( //join with another join
                                                         _context.Books
                                                             .Join(_context.Rent, //join based on BooksId
@@ -44,7 +44,7 @@ namespace Library.Controllers
                                                     )
                                                     .OrderByDescending(x => x.RentCounts)
                                                     .Select(x => x.Publisher)
-                                                    .ToList();
+                                                    .ToListAsync();
             return View(popularPublishers);
         }
 
@@ -140,7 +140,7 @@ namespace Library.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PublisherExists(model.Id))
+                    if (!await PublisherExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -154,7 +154,7 @@ namespace Library.Controllers
             return View(model);
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
 
             if (id == null)
@@ -162,7 +162,7 @@ namespace Library.Controllers
                 return NotFound();
             }
 
-            var publisher = _context.Publisher.Find(id);
+            var publisher = await _context.Publisher.FindAsync(id);
 
             if (publisher == null)
             {
@@ -170,13 +170,13 @@ namespace Library.Controllers
             }
 
             _context.Publisher.Remove(publisher);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
-        private bool PublisherExists(int id)
+        private async Task<bool> PublisherExists(int id)
         {
-            return _context.Publisher.Any(e => e.Id == id);
+            return await _context.Publisher.AnyAsync(e => e.Id == id);
         }
     }
 }

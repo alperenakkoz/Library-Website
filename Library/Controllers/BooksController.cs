@@ -158,12 +158,12 @@ namespace Library.Controllers
         }
 
         [Authorize(Roles = "Admin, Editor")]
-        public IActionResult Create() {
-            ViewBag.AuthorSelect = new SelectList(_context.Author.ToList(), "Id", "Name");
-            ViewBag.BookLanguageSelect = new SelectList(_context.BookLanguage.ToList(), "Id", "Name");
-            ViewBag.PublisherSelect = new SelectList(_context.Publisher.ToList(), "Id", "Name");
-            ViewBag.CategorySelect = new SelectList(_context.Category.ToList(), "Id", "Name");
-            ViewBag.TranslatorSelect = new SelectList(_context.Translator.ToList(), "Id", "Name");
+        public async Task<IActionResult> CreateAsync() {
+            ViewBag.AuthorSelect = new SelectList(await _context.Author.ToListAsync(), "Id", "Name");
+            ViewBag.BookLanguageSelect = new SelectList(await _context.BookLanguage.ToListAsync(), "Id", "Name");
+            ViewBag.PublisherSelect = new SelectList(await _context.Publisher.ToListAsync(), "Id", "Name");
+            ViewBag.CategorySelect = new SelectList(await _context.Category.ToListAsync(), "Id", "Name");
+            ViewBag.TranslatorSelect = new SelectList(await _context.Translator.ToListAsync(), "Id", "Name");
             return View();
         }
 
@@ -222,13 +222,13 @@ namespace Library.Controllers
         }
 
         [Authorize(Roles = "Admin, Editor")]
-        public IActionResult Delete(int? id) { 
+        public async Task<IActionResult> Delete(int? id) { 
 
             if (id == null) { 
                 return NotFound();
             }
 
-            var book = _context.Books.Find(id);
+            var book = await _context.Books.FindAsync(id);
 
             if (book == null)
             {
@@ -236,26 +236,26 @@ namespace Library.Controllers
             }
 
             _context.Books.Remove(book);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
         [Authorize(Roles = "Admin, Editor")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if(id == null)
             {
                 return NotFound();
             }
-            var book = _context.Books.Find(id);          
+            var book = await _context.Books.FindAsync(id);          
             if (book == null) { return NotFound(); }
-            List<int> authorIds = _context.BookAuthors.Where(x => x.BooksId == id).Select(x => x.AuthorId).ToList();
-            List<int> translatorIds = _context.BookTranslator.Where(x => x.BooksId == id).Select(x => x.TranslatorId).ToList();
-            ViewBag.AuthorSelect = new SelectList(_context.Author.ToList(), "Id", "Name", authorIds); //fourth one is default value
-            ViewBag.BookLanguageSelect = new SelectList(_context.BookLanguage.ToList(), "Id", "Name", book.BookLanguageId);
-            ViewBag.PublisherSelect = new SelectList(_context.Publisher.ToList(), "Id", "Name", book.PublisherId);
-            ViewBag.CategorySelect = new SelectList(_context.Category.ToList(), "Id", "Name", book.CategoryId);
-            ViewBag.TranslatorSelect = new SelectList(_context.Translator.ToList(), "Id", "Name", translatorIds);
+            List<int> authorIds = await _context.BookAuthors.Where(x => x.BooksId == id).Select(x => x.AuthorId).ToListAsync();
+            List<int> translatorIds = await _context.BookTranslator.Where(x => x.BooksId == id).Select(x => x.TranslatorId).ToListAsync();
+            ViewBag.AuthorSelect = new SelectList(await _context.Author.ToListAsync(), "Id", "Name", authorIds); //fourth one is default value
+            ViewBag.BookLanguageSelect = new SelectList(await _context.BookLanguage.ToListAsync(), "Id", "Name", book.BookLanguageId);
+            ViewBag.PublisherSelect = new SelectList(await _context.Publisher.ToListAsync(), "Id", "Name", book.PublisherId);
+            ViewBag.CategorySelect = new SelectList(await _context.Category.ToListAsync(), "Id", "Name", book.CategoryId);
+            ViewBag.TranslatorSelect = new SelectList(await _context.Translator.ToListAsync(), "Id", "Name", translatorIds);
             EditBookViewModel model = new ()
             {
                 Title = book.Title,
@@ -306,7 +306,7 @@ namespace Library.Controllers
                 {
                     for(int i = 0; i < numberOfAddedBooks; i++)
                     {
-                        WaitList waitListUser = await _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefaultAsync(x => x.BooksId == id);
+                        WaitList? waitListUser = await _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefaultAsync(x => x.BooksId == id);
                         if (waitListUser != null)
                         {
                             Hold holdUser = new ()
@@ -401,7 +401,7 @@ namespace Library.Controllers
             Response.Cookies.Append("LastVisitedBooks", lastVisitedBooks, cookieOptions); //set cookie
 
             List<Comments> comments = await _context.Comments.Where(x => x.BooksId == id).OrderByDescending(x => x.UpdateDate ?? x.CreateDate).ToListAsync();
-            List<CommentViewModel> commentViewModels = new ();
+            List<CommentViewModel> commentViewModels = [];
             ViewData["ChangeComment"] = null;
             string? currentUserId = _userManager.GetUserId(User);
             foreach(var item in comments)
@@ -452,9 +452,9 @@ namespace Library.Controllers
             }
            
 
-            if (isInHoldList((int)id))
+            if (IsInHoldList((int)id))
                 ViewData["ButtonText"] = _localizer["CancelTheReservation"];
-            else if (isInWaitlist((int)id))
+            else if (IsInWaitlist((int)id))
                 ViewData["ButtonText"] = _localizer["RemoveFromWaitlist"];
             else
                 ViewData["ButtonText"] = _localizer["Reserve"];
@@ -464,19 +464,19 @@ namespace Library.Controllers
 
         [HttpPost]
         [Authorize]
-        public IActionResult Reserve(int id) //AJAX
+        public async Task<IActionResult> Reserve(int id) //AJAX
         {
             string userId = _userManager.GetUserId(User); 
-            bool isInWait = isInWaitlist(id);
-            bool isInHold= isInHoldList(id);
+            bool isInWait = IsInWaitlist(id);
+            bool isInHold= IsInHoldList(id);
             string buttonText = "";
             string resultText = "";
             if (isInHold) //check hold first. If it's in it remove
             {
-                _context.Hold.Remove(_context.Hold.FirstOrDefault(x => x.LibraryUserId == userId && x.BooksId == id));
+                _context.Hold.Remove(await _context.Hold.FirstOrDefaultAsync(x => x.LibraryUserId == userId && x.BooksId == id));
                 buttonText = _localizer["Reserve"];
                 resultText = _localizer["Cancel"];
-                WaitList waitListUser = _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefault(x => x.BooksId == id);
+                WaitList waitListUser = await _context.WaitList.OrderBy(x => x.CreateDate).FirstOrDefaultAsync(x => x.BooksId == id);
 
                 if (waitListUser != null) //give the book first record from waitlist
                 {
@@ -492,7 +492,7 @@ namespace Library.Controllers
                 }
                 else
                 {
-                    var book = _context.Books.FirstOrDefault(x=> x.Id == id);
+                    var book = await _context.Books.FirstOrDefaultAsync(x=> x.Id == id);
                     book.numberOfBooks++;
                     _context.Books.Update(book);
                 }
@@ -500,9 +500,9 @@ namespace Library.Controllers
             else //not in hold
             {
                 
-                if(_context.Books.FirstOrDefault(x => x.Id == id).numberOfBooks > 0 ) //if books number bigger 0,then no one is in waitlist and you can reserve
+                if((await _context.Books.FirstOrDefaultAsync(x => x.Id == id)).numberOfBooks > 0 ) //if books number bigger 0,then no one is in waitlist and you can reserve
                 {
-                    if (_context.Hold.Count(x => x.LibraryUserId == userId) + _context.WaitList.Count(x => x.LibraryUserId == userId) >= 4)
+                    if (await _context.Hold.CountAsync(x => x.LibraryUserId == userId) + await _context.WaitList.CountAsync(x => x.LibraryUserId == userId) >= 4)
                     {//max number of reserve is 4 
                         return BadRequest(_localizer["Limit4"]);
                     }
@@ -513,7 +513,7 @@ namespace Library.Controllers
                         StartTime = DateTime.Now,
                         EndTime = DateTime.Now.AddDays(2),
                     });                  
-                    var book = _context.Books.FirstOrDefault(x => x.Id == id);
+                    var book = await _context.Books.FirstOrDefaultAsync(x => x.Id == id);
                     book.numberOfBooks--;
                     _context.Update(book);
                     buttonText = _localizer["CancelTheReservation"];
@@ -521,13 +521,13 @@ namespace Library.Controllers
                 }
                 else if (isInWait)
                 {
-                    _context.WaitList.Remove(_context.WaitList.FirstOrDefault(x => x.LibraryUserId == userId && x.BooksId == id));
+                    _context.WaitList.Remove(await _context.WaitList.FirstOrDefaultAsync(x => x.LibraryUserId == userId && x.BooksId == id));
                     buttonText = _localizer["Reserve"];
                     resultText = _localizer["Cancel"];
                 }
                 else //add to waitlist
                 {
-                    if (_context.Hold.Count(x => x.LibraryUserId == userId) + _context.WaitList.Count(x => x.LibraryUserId == userId) >= 4)
+                    if (await _context.Hold.CountAsync(x => x.LibraryUserId == userId) + await _context.WaitList.CountAsync(x => x.LibraryUserId == userId) >= 4)
                     {//max number of reserve is 4 
                         return BadRequest(_localizer["Limit4"]);
                     }
@@ -538,16 +538,16 @@ namespace Library.Controllers
                         CreateDate = DateTime.Now,
                     });
                     buttonText = _localizer["RemoveFromWaitlist"];
-                    int place = _context.WaitList.OrderBy(x => x.CreateDate)
+                    int place = (await _context.WaitList.OrderBy(x => x.CreateDate)
                               .Where(x => x.BooksId == id)
-                              .ToList()
-                              .IndexOf(_context.WaitList.FirstOrDefault(x => x.LibraryUserId == userId && x.BooksId == id)) + 2;
+                              .ToListAsync())
+                              .IndexOf(await _context.WaitList.FirstOrDefaultAsync(x => x.LibraryUserId == userId && x.BooksId == id)) + 2;
 
                     resultText = PlaceText(place);
                 }
             }           
                             
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             var result = new Dictionary<string, string> //to send two values
             {
                 { "buttonText", buttonText },
@@ -562,7 +562,7 @@ namespace Library.Controllers
         }
 
         
-        public IActionResult GetFavoriteBooks([FromBody] string[] favoriteIdsString) //AJAX
+        public async Task<IActionResult> GetFavoriteBooks([FromBody] string[] favoriteIdsString) //AJAX
         {
             if (favoriteIdsString == null || favoriteIdsString.Length == 0)
             {
@@ -570,11 +570,11 @@ namespace Library.Controllers
             }
             List<int> favoriteIds = favoriteIdsString.Select(int.Parse).ToList(); //make it int list
            
-            List<Books> favoriteBooks = _context.Books.Where(b => favoriteIds.Contains(b.Id)).ToList();
+            List<Books> favoriteBooks = await _context.Books.Where(b => favoriteIds.Contains(b.Id)).ToListAsync();
             return PartialView("_ButtonListBooks", favoriteBooks); //instead of handling it in AJAX success, just send a partial view
             //return Ok(favoriteBooks);
         }
-        private bool isInWaitlist(int id)
+        private bool IsInWaitlist(int id)
         {
             string userId = _userManager.GetUserId(User); 
             if (_context.WaitList.Any(x => x.LibraryUserId == userId && x.BooksId == id))
@@ -585,7 +585,7 @@ namespace Library.Controllers
             return false;
         }
 
-        private bool isInHoldList(int id)
+        private bool IsInHoldList(int id)
         {
             string userId = _userManager.GetUserId(User); 
             if (_context.Hold.Any(x => x.LibraryUserId == userId && x.BooksId == id))
@@ -598,15 +598,15 @@ namespace Library.Controllers
 
         [Authorize]
         [HttpPost]
-        public IActionResult ChangeComment(ChangeCommentViewModel model)
+        public async Task<IActionResult> ChangeComment(ChangeCommentViewModel model)
         {
             if (ModelState.IsValid)
             {
-                Comments prevComment = _context.Comments.FirstOrDefault(x => x.Id == model.CommentId);
+                Comments prevComment = await _context.Comments.FirstOrDefaultAsync(x => x.Id == model.CommentId);
                 prevComment.UpdateDate = DateTime.Now;
                 prevComment.Comment = model.Comment;
                 _context.Update(prevComment);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return RedirectToAction("Details", new { id = model.BooksId });
             }        
                              
@@ -615,7 +615,7 @@ namespace Library.Controllers
 
         [Authorize]
         [HttpPost]
-        public IActionResult AddComment(CreateCommentViewModel model)
+        public async Task<IActionResult> AddComment(CreateCommentViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -627,24 +627,24 @@ namespace Library.Controllers
                     CreateDate = DateTime.Now,
                 };
                 _context.Add(comment);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return RedirectToAction("Details", new { id = model.BooksId });
             }                     
             return Json(false);
         }
 
         [Authorize]
-        public IActionResult DeleteComment(int id)
+        public async Task<IActionResult> DeleteComment(int id)
         {
             string userId = _userManager.GetUserId(User); 
             if (userId != null)
             {
-                Comments? comment = _context.Comments.FirstOrDefault(c => c.Id == id && c.LibraryUserId == userId);
+                Comments? comment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id && c.LibraryUserId == userId);
                 if(comment != null)
                 {
                     int bookId = comment.BooksId;
                     _context.Comments.Remove(comment);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     return RedirectToAction("Details", new { id = bookId });
                 }
                 
