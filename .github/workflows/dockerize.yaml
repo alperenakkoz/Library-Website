@@ -1,0 +1,17 @@
+name: Dockerize the app
+
+on: [push]
+  
+jobs:
+  Dockerize:
+    runs-on: ubuntu-latest
+    name: Build image and run the container
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run docker-compose
+        run: |
+          docker compose -f compose.yaml up -d --build
