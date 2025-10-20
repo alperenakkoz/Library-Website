@@ -18,4 +18,10 @@ jobs:
           
       - name: curl to localhost
         run: |
-          curl localhost:40000
+          until docker ps | grep library-website-server-1 && docker ps | grep sql_server_container; do
+          echo "Waiting for containers to be up..."
+          sleep 1
+          done
+
+          echo "Containers are up!"
+          curl http://localhost:40000
