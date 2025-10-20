@@ -1,0 +1,30 @@
+services:
+  # App container
+  server:
+    build:
+      context: .
+      target: final #latest build
+    ports:
+      - 40000:8080 #http://localhost:40000/
+    depends_on:
+      db: #now it's depend on the db.
+        condition: service_healthy 
+    environment:
+    #because of the culture that i used in the code
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0 
+
+  # SQL Server container
+  db:
+    build:
+      context: .
+      dockerfile: DockerfileMSSQL
+    container_name: sql_server_container
+    ports:
+      - 1433:1433
+    healthcheck:
+    #now the tricky part. We need to ensure that one of our tables is running in the database.
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P", "YourStrong!Passw0rd", "-d", "Library", "-Q", "SELECT 1"]
+      interval: 10s
+      retries: 10
+      start_period: 60s
+      timeout: 5s
