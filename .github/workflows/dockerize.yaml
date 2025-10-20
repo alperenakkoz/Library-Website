@@ -18,4 +18,4 @@ jobs:
           
       - name: curl to localhost
         run: |
-          docker exec library-website-server-1 curl -s http://localhost:8080
+          docker exec library-website-server-1 wget -qO- http://localhost:8080
