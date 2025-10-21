@@ -18,4 +18,10 @@ jobs:
           
       - name: curl to localhost
         run: |
-          docker exec library-website-server-1 wget -qO- http://localhost:8080
+          echo "Waiting for server to be ready on localhost:40000..."
+          timeout 30s bash -c ' \
+            until curl -sS -f http://localhost:40000; do \
+              echo "Server not up yet. Retrying in 2 seconds..."; \
+              sleep 2; \
+            done'
+          echo "Server is up and responding!"
