@@ -1,8 +1,7 @@
 # DockerfileMSSQL
 FROM mcr.microsoft.com/mssql/server:2022-latest
 
-ENV MSSQL_SA_PASSWORD="YourStrong!Passw0rd" \
-    ACCEPT_EULA="Y"
+ENV ACCEPT_EULA="Y"
 
 # Create backup directory
 RUN mkdir -p /var/opt/mssql/backup 
