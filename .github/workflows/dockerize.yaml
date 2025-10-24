@@ -6,6 +6,8 @@ jobs:
   Dockerize:
     runs-on: ubuntu-latest
     name: Build image and run the container
+    env:
+      MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
       
