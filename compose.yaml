@@ -21,9 +21,12 @@ services:
     container_name: sql_server_container
     ports:
       - 1433:1433
+    environment:
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - ACCEPT_EULA=Y
     healthcheck:
     #now the tricky part. We need to ensure that one of our tables is running in the database.
-      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P", "YourStrong!Passw0rd", "-d", "Library", "-Q", "SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P",  "${MSSQL_SA_PASSWORD}", "-d", "Library", "-Q", "SELECT 1"]
       interval: 10s
       retries: 10
       start_period: 60s
