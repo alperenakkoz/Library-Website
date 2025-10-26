@@ -12,6 +12,8 @@ services:
     environment:
     #because of the culture that i used in the code
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0 
+      - ConnectionStrings__LibraryDB="Data Source=db,1433;Initial Catalog=Library;User ID=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+
 
   # SQL Server container
   db:
