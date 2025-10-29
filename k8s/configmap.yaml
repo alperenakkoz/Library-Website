@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-config
+data:
+  ACCEPT_EULA: "Y"
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "0"

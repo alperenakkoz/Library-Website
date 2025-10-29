@@ -1,0 +1,15 @@
+# 8080 widely used by web apps
+# I want to curl outside of kubectl and container so used NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: library-app-service
+spec:
+  selector:
+    app: library-app
+  ports:
+  #80 http
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  type: NodePort

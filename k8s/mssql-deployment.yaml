@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      containers:
+      - name: mssql
+        image: alperenakkoz/library-website-db:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 1433
+        env:
+        - name: ACCEPT_EULA
+          valueFrom:
+            configMapKeyRef:
+              name: mssql-config
+              key: ACCEPT_EULA
+        - name: MSSQL_SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secret
+              key: MSSQL_SA_PASSWORD
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P $MSSQL_SA_PASSWORD -Q 'SELECT 1'"
+          initialDelaySeconds: 60
+          periodSeconds: 60 #check every minute
+          timeoutSeconds: 10 #allow 10secs for command
+          failureThreshold: 5 #after 5 failure restart
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P $MSSQL_SA_PASSWORD -Q 'SELECT 1'"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
+          successThreshold: 1

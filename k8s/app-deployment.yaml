@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library-app
+  template:
+    metadata:
+      labels:
+        app: library-app
+    spec:
+      containers:
+      - name: library-app
+        image: alperenakkoz/library-website-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT
+          valueFrom:
+            configMapKeyRef:
+              name: mssql-config
+              key: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT
+        - name: MSSQL_SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secret
+              key: MSSQL_SA_PASSWORD
+        - name: ConnectionStrings__LibraryDB
+          value: "Data Source=mssql-service,1433;Initial Catalog=Library;User ID=sa;Password=$(MSSQL_SA_PASSWORD);Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Waiting for SQL Server to be ready..."
+          until nc -z mssql-service 1433; do
+            echo "SQL Server is not ready yet. Waiting..."
+            sleep 5
+          done
+          echo "SQL Server is ready!"

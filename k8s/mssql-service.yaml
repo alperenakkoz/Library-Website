@@ -1,0 +1,14 @@
+#mssql uses port 1433. 
+#ClusterIP is enough because it will only provide connection inside cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-service
+spec:
+  selector:
+    app: mssql
+  ports:
+  - port: 1433
+    targetPort: 1433
+    protocol: TCP
+  type: ClusterIP
